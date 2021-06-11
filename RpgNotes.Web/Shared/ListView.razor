@@ -1,0 +1,19 @@
+@typeparam T
+
+<ul class="w3-ul w3-hoverable">
+    @if (Items != null) {
+        foreach (var item in Items) {
+            <li @onclick=@(() => OnClick?.Invoke(item)) style="border:none;">
+                <div class="w3-border w3-round-large dark">
+                    @ChildContent(item)
+                </div>
+            </li>
+        }
+    }
+</ul>
+
+@code {
+    [Parameter] public IEnumerable<T> Items {get; set;}
+    [Parameter] public RenderFragment<T> ChildContent {get; set;}
+    [Parameter] public Action<T> OnClick {get; set;}
+}

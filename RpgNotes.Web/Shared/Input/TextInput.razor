@@ -1,0 +1,9 @@
+<div class="w3-margin-bottom">
+    <label>@Label</label>
+    <input class="w3-input darker" type="text" @bind=Value>
+</div>
+
+@code {
+    [Parameter] public string Label {get; set;}
+    public string Value {get; set;}
+}

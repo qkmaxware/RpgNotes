@@ -1,0 +1,69 @@
+@page "/archive/{id:int}"
+@inject AppData Data;
+@inject History Nav;
+@using RpgNotes.Web.Shared.Popups;
+
+@{
+var c = Campaign;
+if (c != null) {
+<Navigator Title=@c.Name>
+</Navigator>
+
+<div class="w3-round-large w3-margin dark">
+    <div class="darker w3-display-container">
+        <div class="w3-padding w3-large">
+            About
+        </div>
+    </div>
+    <div class="w3-padding">
+        <label>Age</label>
+        <div class="w3-padding">
+            @((DateTime.Now - c.CreatedAt).TotalDays) days
+        </div>
+        <label>System</label>
+        <div class="w3-padding">
+            <img src=@c.System.IconImage.Url class="w3-left w3-margin-right" width=48/>
+            <div style="color: #@c.System.ThemeColour.ToHexString()">
+                <span class="w3-large">@c.System.Name</span><br>
+                <a href="@c.System.WebLink" target="_blank">@c.System.Publisher</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if(c.IsArchived) {
+<div class="w3-padding w3-center">
+    <div class="w3-padding">
+        <button class="w3-green w3-button w3-block" @onclick=@(()=>c.IsArchived = false)>Restore</button>
+    </div>
+    <div class="w3-padding">
+        <button class="highlight w3-button w3-block" @onclick=@(()=>delete(c))>Delete</button>
+    </div>
+</div>
+} else {
+<div class="w3-padding w3-center">
+    <div class="w3-padding">
+        <button class="highlight w3-button w3-block" @onclick=@(()=>c.IsArchived = true)>Archive</button>
+    </div>
+</div>  
+}
+}
+}
+<Confirm @ref=confirmation></Confirm>
+
+@code {
+    [Parameter] public int id { get; set; }
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+
+    private Confirm confirmation;
+
+    private void delete(Campaign c) {
+        confirmation.RequestConfirmation(()=>deleteNow(c));
+    }
+
+    private void deleteNow(Campaign c) {
+        Data.Campaigns.Remove(c); 
+        Nav.NavigateTo("");
+    }
+
+}

@@ -1,0 +1,26 @@
+@typeparam T
+
+<Modal @ref=modal Title="Import JSON">
+    <LocalFilePicker Accept=".json,application/JSON,application/json" AsDataUrl=false OnFileLoad=@((b) =>data=b)></LocalFilePicker>
+
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=save>Ok</button>
+    </div>
+</Modal>
+
+@code {
+    private Modal modal;
+    private string data;
+
+    [Parameter] public Action<T> OnSave {get; set;}
+
+    public void Open() {
+        modal?.Open();
+    }
+
+    private void save() {
+        var obj = System.Text.Json.JsonSerializer.Deserialize<T>(data);
+        OnSave?.Invoke(obj);
+        modal?.Close();
+    }
+}

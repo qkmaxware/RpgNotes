@@ -1,0 +1,9 @@
+<div class="w3-margin-bottom">
+    <label>@Label</label>
+    <input class="w3-input darker" type="number" @bind=Value>
+</div>
+
+@code {
+    [Parameter] public string Label {get; set;}
+    public double Value {get; set;}
+}

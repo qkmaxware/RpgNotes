@@ -1,0 +1,120 @@
+@inject AppData Data;
+
+<Modal @ref=modal Title="New Campaign">
+    <TextInput Label="Campaign Name" @ref=campaignName></TextInput>
+
+    <div class="w3-margin-bottom">
+        <label>RPG System</label>
+        <DropdownSelect Items=systems Context=system @ref=system OnChange=StateHasChanged>
+            <div>
+                <img src=@system.IconImage.Url class="w3-left w3-margin-right" width=48/>
+                <div style="color: #@system.ThemeColour.ToHexString()">
+                    <span class="w3-large">@system.Name</span><br>
+                    <small>@system.Publisher</small>
+                </div>
+            </div>
+        </DropdownSelect>
+    </div>
+
+    <div class="w3-padding w3-center">
+        <button class="@conditionCss w3-button" @onclick=create>Create</button>
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public Action OnCreate {get; set;}
+    private Modal modal;
+    private DropdownSelect<RpgSystem> system;
+    private TextInput campaignName = null;
+    public Campaign GeneratedCampaign => new Campaign {
+        Name = campaignName?.Value,
+        System = system?.Selected,
+        CreatedAt = DateTime.Now,
+    };
+    private bool hasSystem => system?.Selected != null;
+    private string conditionCss => hasSystem && !string.IsNullOrEmpty(campaignName?.Value) ? "w3-green" : "w3-dark-grey";
+
+    public void Open() {
+        modal?.Open();
+        StateHasChanged();
+    }
+
+    private void create() {
+        if (system?.Selected == null || string.IsNullOrEmpty(campaignName?.Value))
+            return;
+
+        var campaign = GeneratedCampaign;
+        if (Data.Campaigns == null)
+            Data.Campaigns = new List<Campaign>();
+        Data.Campaigns.Add(campaign);
+        modal?.Close();
+        OnCreate?.Invoke();
+    }   
+
+    private static List<RpgSystem> systems = new List<RpgSystem> {
+        new RpgSystem {
+            Name = "D&D 5E",
+            Publisher = "Wizards of the Coast",
+            ThemeColour = new RGB(255, 0, 0),
+            Description = "",
+            WebLink = "https://dnd.wizards.com/",
+            IconImage = Image.FromUrl("logos/dnd.svg"),
+        },
+        new RpgSystem {
+            Name = "Pathfinder",
+            Publisher = "Paizo",
+            ThemeColour = new RGB(225, 218, 145),
+            Description = "",
+            WebLink = "https://paizo.com/pathfinder",
+            IconImage = Image.FromUrl("logos/pathfinder.svg"),
+        },
+        new RpgSystem {
+            Name = "Starfinder",
+            Publisher = "Paizo",
+            ThemeColour = new RGB(36, 163, 231),
+            Description = "",
+            WebLink = "https://paizo.com/pathfinder",
+            IconImage = Image.FromUrl("logos/starfinder.svg"),
+        },
+        new RpgSystem {
+            Name = "Star Trek Adventures",
+            Publisher = "Mōdiphiüs Entertainment",
+            ThemeColour = new RGB(192, 198, 199),
+            Description = "",
+            WebLink = "https://www.modiphius.net/collections/star-trek-adventures",
+            IconImage = Image.FromUrl("logos/sta.svg"),
+        },
+        new RpgSystem {
+            Name = "Dungeon World",
+            Publisher = "Sage LaTorra and Adam Koebel",
+            ThemeColour = new RGB(106, 126, 114),
+            Description = "",
+            WebLink = "https://dungeon-world.com/",
+            IconImage = Image.FromUrl("logos/dw.svg"),
+        },
+        new RpgSystem {
+            Name = "Star Wars the Roleplaying Game",
+            Publisher = "Fantasy Flight Games",
+            ThemeColour = new RGB(255, 197, 0),
+            Description = "",
+            WebLink = "https://www.fantasyflightgames.com/en/products/star-wars-the-roleplaying-game-30th-anniversary-edition/",
+            IconImage = Image.FromUrl("logos/sw.svg"),
+        },
+        new RpgSystem {
+            Name = "Fate",
+            Publisher = "Evil Hat Productions",
+            ThemeColour = new RGB(128, 153, 207),
+            Description = "",
+            WebLink = "https://www.evilhat.com/home/fate-core/",
+            IconImage = Image.FromUrl("logos/fate.svg"),
+        },
+        new RpgSystem {
+            Name = "Other",
+            Publisher = "Many",
+            ThemeColour = new RGB(255, 255, 255),
+            Description = "",
+            WebLink = "",
+            IconImage = Image.FromUrl("logos/generic.svg"),
+        },
+    };
+}

@@ -1,0 +1,35 @@
+@page "/campaign/{id:int}/tags"
+@inject AppData Data;
+@inject History Nav;
+
+@if (Campaign != null) {
+    <Navigator Title=Tags Previous=@($"campaign/{id}")>
+        <button class="w3-button" @onclick=createTag>&#x2b;</button>
+    </Navigator>
+
+    <div class="w3-margin-bottom">
+        @if (Campaign.Tags.Count < 1) {
+            <div class="w3-center w3-padding">
+                <span>No tags</span>
+            </div>
+        }
+        @foreach (var tag in Campaign.Tags) {
+            <TagDrawer Tag=tag></TagDrawer>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+
+    protected override void OnInitialized() {
+        if (Campaign != null && Campaign.Tags == null) {
+            Campaign.Tags = new List<Tag>();
+        }
+    }
+
+    private void createTag() {
+        Nav.NavigateTo($"campaign/{id}/tags/new", noHistory: true);
+    }
+}

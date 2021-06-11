@@ -1,0 +1,55 @@
+@page "/campaign/{id:int}/worlds"
+@inject AppData Data;
+@inject History Nav;
+@using RpgNotes.Web.Shared.Popups;
+
+@if (Campaign?.Entries != null) {
+    <Navigator Title="Worlds" Previous=@($"campaign/{id}")>
+        <button class="w3-button" @onclick=@(() => openCreator())>&#x2b;</button>
+    </Navigator>
+    <input class="w3-input dark w3-margin-bottom" type="text" placeholder="filter" @bind=filter>
+
+    <ListView Items=@Campaign.Entries.Enumerate().Where(entry => entry.WorldData != null && matchesFilter(entry))>
+        <div class="w3-padding" @onclick=@(() => openEntity(context))>
+            <div>
+                <span class="w3-large">@context.Name</span><br>
+            </div>
+        </div>
+    </ListView>
+
+    <NewEntry @ref=newEntity OnCreate=addEntry></NewEntry>
+}
+
+@code {
+    private string filter;
+    [Parameter] public int id { get; set; }
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+
+    private bool matchesFilter(Entry entry) {
+        return string.IsNullOrEmpty(filter) || entry.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    protected override void OnInitialized() {
+        base.OnInitialized();
+        var c = Campaign;
+        if (c != null && c.Entries == null) {
+            c.Entries = new EntryCollection();
+        }
+    }
+
+    private void openEntity(Entry entry) {
+        var eid = Campaign.Entries.GuidOf(entry);
+        Nav.NavigateTo($"campaign/{id}/entries/{eid}");
+    }
+
+    private NewEntry newEntity;
+    private void openCreator() {
+        newEntity?.Open();
+    }
+
+    private void addEntry(Entry entry) {
+        entry.WorldData = new WorldData();
+        Campaign.Entries.Add(entry);
+        openEntity(entry);
+    }
+}

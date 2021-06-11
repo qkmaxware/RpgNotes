@@ -1,0 +1,35 @@
+<div class="w3-modal @css">
+    <div class="w3-modal-content">
+        <div class="dark">
+            <div class="darkest w3-xlarge w3-padding">
+                @Title
+                <span class="w3-button w3-display-topright" @onclick=Close>&times;</span>
+            </div>
+            <div class="w3-padding">
+                @ChildContent
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title {get; set;}
+    [Parameter] public Action OnOpen {get; set;}
+    [Parameter] public Action OnClose {get; set;}
+    [Parameter] public RenderFragment ChildContent {get; set;}
+
+    public bool Show {get; private set;} = false;
+    private string css => Show ? "w3-show" : "w3-hide";
+
+    public void Open() {
+        Show = true;
+        StateHasChanged();
+        OnOpen?.Invoke();
+    }
+
+    public void Close() {
+        Show = false;
+        StateHasChanged();
+        OnClose?.Invoke();
+    }
+}

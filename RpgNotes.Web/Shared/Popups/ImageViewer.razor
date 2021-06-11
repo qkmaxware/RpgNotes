@@ -1,0 +1,23 @@
+<Modal @ref=modal Title="Image">
+    @if (image != null) {
+        <img src=@image.Url style="width: 100%; height: auto; margin-left:auto; margin-right:auto;">
+    }
+    <div class="w3-padding w3-center">
+        <button class="highlight w3-button" @onclick=delete>Delete</button>
+    </div>
+</Modal>
+
+@code {
+    private Modal modal;
+    private Image image;
+    [Parameter] public Action<Image> OnDelete {get; set;}
+    public void Open(Image image) {
+        this.image = image;
+        modal?.Open();
+    }
+
+    private void delete() {
+        OnDelete?.Invoke(this.image);
+        modal?.Close();
+    }
+}

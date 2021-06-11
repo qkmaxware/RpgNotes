@@ -1,0 +1,24 @@
+@inject History Nav
+
+<div class="w3-bar w3-large darker">
+    @if (AllowBack) {
+        <button class="w3-bar-item w3-button" @onclick=@(()=>Nav.BackOrDefault(Previous))>&#x2039;</button>
+    }
+    <div>
+        <span class="w3-bar-item">
+            <b>@Title</b>
+        </span>
+        @if (ChildContent != null) {
+        <div class="w3-right-align">
+            @ChildContent
+        </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title {get; set;}
+    [Parameter] public RenderFragment ChildContent {get; set;}
+    [Parameter] public bool AllowBack {get; set;} = true;
+    [Parameter] public string Previous {get; set;} = string.Empty;
+}

@@ -1,0 +1,32 @@
+@inject AppData Data;
+
+<Modal @ref=modal Title="New Entry">
+    <TextInput @ref="name" Label="Name"></TextInput>
+    <MultilineTextInput @ref="desc" Label="Description"></MultilineTextInput>
+
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=create>Create</button>
+    </div>
+</Modal>
+
+@code {
+    private Modal modal;
+    public void Open() {
+        modal?.Open();
+        StateHasChanged();
+    }
+
+    private TextInput name;
+    private MultilineTextInput desc;
+
+    [Parameter] public Action<Entry> OnCreate {get; set;}
+    private void create() {
+        var entity = new Entry{
+            Name = name.Value,
+            Description = desc.Value,
+        };
+
+        modal?.Close();
+        OnCreate?.Invoke(entity);
+    }
+}

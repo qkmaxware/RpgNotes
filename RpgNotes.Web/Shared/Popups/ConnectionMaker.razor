@@ -1,0 +1,66 @@
+<Modal @ref=modal Title="Define Connection">
+    @if (modal.Show) {
+        <div class="w3-padding">
+            <label>Relationship</label>
+            <select class="w3-input darker" @bind=generator>
+                @foreach (var kv in generators) {
+                    <option value=@kv.Key>@kv.Key</option>
+                }
+            </select>
+        </div>
+        <div class="w3-padding">
+            <label>With</label>
+            <input list="all-entries-list" class="w3-input darker" type="text" @bind=entryName>
+            <datalist id="all-entries-list">
+                @if (Entries != null) {
+                foreach (var entry in Entries.Enumerate()) {
+                    <option value=@entry.Name/>
+                }
+                }
+            </datalist>
+        </div>
+    }
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=add>Add</button>
+    </div>
+</Modal>
+
+@code {
+    private string generator;
+    private string entryName;
+
+    private Modal modal;
+    private Dictionary<string, Func<string,string,Connection>> generators = new Dictionary<string, Func<string, string, Connection>>{
+        { "Parent of", Connection.ParentOf },
+        { "Child of", (child, parent) => Connection.ParentOf(parent, child) },
+        { "In a relationship with", Connection.InARelationshipWith },
+        { "Friends with", Connection.FriendsWith },
+        { "Rivals with", Connection.RivalOf },
+        { "Owner of", Connection.OwnerOf },
+        { "Owned by", (item, owner) => Connection.OwnerOf(owner, item) },
+        { "Leader of", Connection.LeaderOf },
+        { "Lead by", (faction, owner) => Connection.LeaderOf(owner, faction) },
+        { "Located in", Connection.LocatedIn },
+        { "Contains", (country, city) => Connection.LocatedIn(city, country) },
+    };
+    [Parameter] public Entry Current {get; set;}
+    [Parameter] public EntryCollection Entries {get; set;}
+    [Parameter] public Action<Connection> OnAdd {get; set;}
+
+    public void Open() {
+        modal?.Open();
+    }
+
+    public void add() {
+        var fn = generators.Where(kv => kv.Key == generator).FirstOrDefault().Value;
+        var ent = Entries.Enumerate().Where(e => e.Name == entryName).FirstOrDefault();
+        if (fn != null && ent != null) {
+            var conn = fn(Entries.GuidOf(Current), Entries.GuidOf(ent));
+            OnAdd?.Invoke(conn);
+            modal?.Close();
+        } else {
+            Console.WriteLine(generator);
+            Console.WriteLine(entryName);
+        }
+    }
+}

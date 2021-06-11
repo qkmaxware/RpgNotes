@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>RpgNotes</title>
+    <base href="/" />
+    <link href="css/w3.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+</head>
+
+<body class="main">
+    <div id="pwa-update-notification" class="notification w3-hide">
+        A new version is available <a href="" onclick="return reloadPwa();" class="w3-text-blue" style="text-decoration: none;"><b>REFRESH</b></a> <a style="text-decoration: none;" href="" onclick="hidePwaUpdate(); return false;">&times;</a>
+    </div>
+    <app>Loading...</app>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script src="js/helpers.js"></script>
+    <script>
+        // Persist data when leaving the app
+        document.addEventListener('visibilitychange', function(e) {
+            if (document.hidden) {
+                // Save data if exists
+                saveAppData();
+            }
+        });
+        function saveAppData() {
+            DotNet.invokeMethodAsync (
+                "RpgNotes.Web",
+                "PersistSession",
+                null
+            );
+        }
+        // Overload the save function
+        document.addEventListener("keydown", function(e) {
+            if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+                e.preventDefault();
+                // Invoke the function to download the app's data
+                DotNet.invokeMethodAsync (
+                    "RpgNotes.Web",
+                    "DownloadAppData",
+                    null
+                );
+            }
+        }, false);
+        // PWA update notification
+        function showPwaUpdate() {
+            let note = document.getElementById("pwa-update-notification");
+            note.classList.remove("w3-hide");
+            note.classList.add("w3-show");
+        }
+        function hidePwaUpdate() {
+            let note = document.getElementById("pwa-update-notification");
+            note.classList.add("w3-hide");
+            note.classList.remove("w3-show");
+        }
+        let newWorker;
+        function reloadPwa() {
+            if (newWorker) {
+                hidePwaUpdate();
+                newWorker.postMessage({ action: 'skipWaiting' });
+            }
+            return false;
+        }
+        navigator.serviceWorker.register('service-worker.js').then(reg => {
+            if (reg.waiting) {
+                newWorker = reg.waiting;
+                showPwaUpdate();
+            }
+
+            reg.addEventListener('updatefound', () => {
+                newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    switch (newWorker.state) {
+                        case "installed":
+                            // If there is a new service worker
+                            if (navigator.serviceWorker.controller) {
+                                showPwaUpdate();
+                            }
+                            break;
+                    }
+                });
+            });
+        });
+        let pwaRefreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (pwaRefreshing) 
+                return;
+            window.location.reload();
+            pwaRefreshing = true;
+        });
+    </script>
+</body>
+
+</html>

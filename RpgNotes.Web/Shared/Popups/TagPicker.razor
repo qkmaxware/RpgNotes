@@ -1,0 +1,44 @@
+<Modal @ref=modal Title="Edit Tags">
+    @if (Options != null) {
+        foreach (var tag in Options) {
+            <button class="w3-button @(isSelected(tag) ? "highlight" : string.Empty)" @onclick=@(()=>toggle(tag))>
+                <TagDrawer Tag=tag></TagDrawer>
+            </button>
+        }
+    }
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=save>Update</button>
+    </div>
+</Modal>
+
+@code {
+    private Modal modal;
+
+    private List<Tag> current;
+    [Parameter] public List<Tag> Options {get;set;}
+
+    private bool isSelected(Tag tag) {
+        return current != null && current.Contains(tag);
+    }
+    private void toggle(Tag tag) {
+        if (current != null) {
+            if (!current.Contains(tag)) {
+                current.Add(tag);
+            } else {
+                current.Remove(tag);
+            }
+        }
+    }
+
+    public void Open(List<Tag> current) {
+        this.current = new List<Tag>(current ?? new List<Tag>());
+        modal?.Open();
+        StateHasChanged();
+    }
+
+    [Parameter] public Action<List<Tag>> OnSave {get; set;}
+    private void save() {
+        OnSave?.Invoke(current);
+        modal?.Close();
+    }
+}

@@ -1,0 +1,47 @@
+@typeparam T
+
+<div class="darker" style="display:initial;">
+    <button class="w3-button w3-block w3-display-container" style="text-align:initial;" @onclick=@(() => showOptions = !showOptions)>
+        @if (ChildContent == null) {
+            <span>@Selected?.ToString()</span>
+        } else {
+            if (Selected != null) {
+                @ChildContent(Selected)
+            } else {
+                <span>select option</span>
+            }
+        }
+        <span class="w3-closebtn w3-padding w3-margin-right w3-medium w3-display-right">
+            ▼
+        </span>
+    </button>
+    <div class="w3-card-4 w3-padding dark @optionsCss">
+        <ul class="w3-ul">
+        @if (Items != null) {
+            foreach (var item in Items) {
+                <li class="w3-hover-grey" @onclick=@(() => select(item))>
+                    @item?.ToString()
+                </li>
+            }
+        }
+        </ul>
+    </div>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<T> Items {get; set;}
+    [Parameter] public RenderFragment<T> ChildContent {get; set;}
+    [Parameter] public Action OnChange {get; set;}
+
+    public T Selected {get; private set;}
+
+    private bool showOptions = false;
+    private string optionsCss => showOptions ? "w3-show" : "w3-hide";
+
+    private void select(T item) {
+        Selected = item;
+        showOptions = false;
+        OnChange?.Invoke();
+    }
+
+}

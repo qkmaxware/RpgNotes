@@ -1,0 +1,16 @@
+@typeparam T
+
+<div class="w3-row">
+    @if (Items != null) {
+        foreach (var item in Items) {
+            <div class="w3-col s6">
+                @Template(item)
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<T> Items {get; set;}
+    [Parameter] public RenderFragment<T> Template {get; set;}
+}

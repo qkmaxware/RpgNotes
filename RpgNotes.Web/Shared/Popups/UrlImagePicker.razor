@@ -1,0 +1,23 @@
+<Modal @ref=modal Title="Add Image">
+    <TextInput @ref=url Label="URL"></TextInput>
+
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=save>Add</button>
+    </div>
+</Modal>
+
+@code {
+    private Modal modal;
+    private TextInput url;
+
+    [Parameter] public Action<Image> OnSave {get; set;}
+
+    public void Open() {
+        modal?.Open();
+    }
+
+    private void save() {
+        OnSave?.Invoke(Image.FromUrl(url?.Value));
+        modal?.Close();
+    }
+}

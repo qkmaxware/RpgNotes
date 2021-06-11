@@ -1,0 +1,100 @@
+@page "/"
+@using RpgNotes.Web.Shared.Popups;
+@inject AppData Data;
+@inject History Nav;
+
+<Navigator Title="Campaigns" AllowBack=false>
+    <button class="w3-button" @onclick=@(() => openNewCampaign())>&#x2b;</button>
+    <span class="w3-dropdown-hover" style="float:inherit;">
+        <button class="w3-button darker">&#x22EE;</button>
+        <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0;">
+            <button class="w3-bar-item w3-button darker" @onclick=clear>Clear Data</button>
+            <button class="w3-bar-item w3-button darker" @onclick=export>Export JSON</button>
+            <button class="w3-bar-item w3-button darker" @onclick=import>Import JSON</button>
+        </div>
+    </span>
+</Navigator>
+
+<NewCampaign @ref=campaign OnCreate=StateHasChanged/>
+
+<div>
+    <div class="w3-bar dark">
+        <button style="width:49.5%" class="w3-bar-item w3-button @(!viewArchive ? "highlight" : string.Empty)" @onclick=@(() => viewArchive=false)>
+            Active
+        </button>
+        <button style="width:49.5%" class="w3-bar-item w3-button @( viewArchive ? "highlight" : string.Empty)" @onclick=@(() => viewArchive=true)>
+            Archived
+        </button>
+    </div>
+    <div class="w3-center">
+        @if (Data.Campaigns == null) {
+            <div class="w3-padding">
+                <span>Create a campaign to get started taking notes</span>
+            </div>
+        }else {
+            if (!viewArchive) {
+                <ListView Items=@Data.Campaigns.Where(campaign=>!campaign.IsArchived)>
+                    <div class="w3-padding" @onclick=@(() => openCampaign(context))>
+                        <img src=@context.System.IconImage.Url class="w3-left w3-margin-right" width=48/>
+                        <div>
+                            <span class="w3-large">@context.Name</span><br>
+                            <small style="color: #@context.System.ThemeColour.ToHexString()">
+                                @context.System.Name 
+                            </small>
+                        </div>
+                    </div>
+                </ListView>
+            } else {
+                <ListView Items=@Data.Campaigns.Where(campaign=>campaign.IsArchived)>
+                    <div class="w3-padding" @onclick=@(() => openArchive(context))>
+                        <img src=@context.System.IconImage.Url class="w3-left w3-margin-right" width=48/>
+                        <div>
+                            <span class="w3-large">@context.Name</span><br>
+                            <small style="color: #@context.System.ThemeColour.ToHexString()">
+                                @context.System.Name 
+                            </small>
+                        </div>
+                    </div>
+                </ListView>
+            }
+        }
+    </div>
+</div>
+<LocalJsonPicker @ref=importer T=AppData OnSave=onImport></LocalJsonPicker>
+<Confirm @ref=confirmation></Confirm>
+
+@code {
+    NewCampaign campaign;
+    bool viewArchive = false;
+
+    private void openNewCampaign() {
+        Console.WriteLine("here");
+        campaign.Open();
+    }
+
+    private void openCampaign(Campaign campaign) {
+        Nav.NavigateTo($"campaign/{Data.Campaigns.IndexOf(campaign)}");
+    }   
+
+    private void openArchive(Campaign campaign) {
+        Nav.NavigateTo($"archive/{Data.Campaigns.IndexOf(campaign)}");
+    }
+
+    private Confirm confirmation;
+    private void clear() {
+        confirmation.RequestConfirmation( ()=>onImport(new AppData()) );
+    }
+
+    private async Task export() {
+        await Program.DownloadAppData(Data);
+    }
+
+    private LocalJsonPicker<AppData> importer;
+    private void import() {
+        importer?.Open();
+    }
+    private void onImport(AppData data) {
+        Data.Overwrite(data);
+        StateHasChanged();
+    }
+}

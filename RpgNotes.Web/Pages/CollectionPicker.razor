@@ -1,0 +1,79 @@
+@page "/campaign/{id:int}"
+@inject AppData Data;
+@inject History Nav;
+@using RpgNotes.Web.Shared.Popups;
+
+@if (Campaign == null) {
+
+} else {
+    <Navigator Title=@Campaign.Name Previous="">
+        <span class="w3-dropdown-hover" style="float:inherit;">
+            <button class="w3-button darker">&#x22EE;</button>
+            <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0;">
+                <button class="w3-bar-item w3-button darker" @onclick=openTagManager>Tag Manager</button>
+                <button class="w3-bar-item w3-button darker" @onclick=archive>Archive Campaign</button>
+            </div>
+        </span>
+    </Navigator>
+    <Confirm @ref=confirmation></Confirm>
+
+    <div class="w3-margin-top">
+        <div class="w3-row">
+            <div class="w3-col s6 m2 w3-padding" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/characters"))>
+                <div class="w3-border w3-round-large dark w3-center w3-large">
+                    <img src="images/npc.logo.svg" style="width:100%; height:auto;">
+                    Characters
+                </div>
+            </div>
+            <div class="w3-col s6 m2 w3-padding" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/quests"))>
+                <div class="w3-border w3-round-large dark w3-center w3-large">
+                    <img src="images/quests.logo.svg" style="width:100%; height:auto;">
+                    Quests
+                </div>
+            </div>
+            <div class="w3-col s6 m2 w3-padding"@onclick=@(() => Nav.NavigateTo($"campaign/{id}/worlds"))>
+                <div class="w3-border w3-round-large dark w3-center w3xlarge">
+                    <img src="images/world.logo.svg" style="width:100%; height:auto;">
+                    Worlds
+                </div>
+            </div>
+            <div class="w3-col s6 m2 w3-padding" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/locations"))>
+                <div class="w3-border w3-round-large dark w3-center w3-large">
+                    <img src="images/location.logo.svg" style="width:100%; height:auto;">
+                    Locations
+                </div>
+            </div>
+            <div class="w3-col s6 m2 w3-padding" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/factions"))>
+                <div class="w3-border w3-round-large dark w3-center w3-large">
+                    <img src="images/faction.logo.svg" style="width:100%; height:auto;">
+                    Factions
+                </div>
+            </div>
+            <div class="w3-col s6 m2 w3-padding" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/items"))>
+                <div class="w3-border w3-round-large dark w3-center w3-large">
+                    <img src="images/item.logo.svg" style="width:100%; height:auto;">
+                    Items
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+
+    private Confirm confirmation;
+
+    private void openTagManager() {
+        Nav.NavigateTo($"campaign/{id}/tags");
+    }
+
+    private void archive() {
+        confirmation.RequestConfirmation(archiveNow);
+        
+    }
+    private void archiveNow() {
+        Campaign.IsArchived = true;
+    }
+}

@@ -1,0 +1,46 @@
+@page "/campaign/{id:int}/tags/new"
+@inject AppData Data;
+@inject History Nav;
+
+@if (Campaign != null) {
+    <Navigator Title="New Tag" Previous=@($"campaign/{id}/tags")>
+    </Navigator>
+
+    <div class="w3-padding">
+        <TextInput Label="Name" @ref=title></TextInput>
+        <ColourInput Label="Colour" @ref=colour></ColourInput>
+    </div>
+
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=create>Create</button>
+    </div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+
+    TextInput title;
+    ColourInput colour;
+
+    protected override void OnInitialized() {
+        if (Campaign != null && Campaign.Tags == null) {
+            Campaign.Tags = new List<Tag>();
+        }
+    }
+
+    private void create() {
+        if (Campaign == null)
+            return;
+
+        var tag = new Tag{
+            Name = title?.Value,
+            Colour = colour.Value,
+        };
+        if (Campaign != null && Campaign.Tags == null) {
+            Campaign.Tags = new List<Tag>();
+        }
+        Campaign.Tags.Add(tag);
+        Nav.NavigateTo($"campaign/{id}/tags", noHistory: true);
+    }
+}

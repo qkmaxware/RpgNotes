@@ -1,0 +1,44 @@
+<div class="w3-margin-bottom">
+    <label>@Label</label>
+    <div class="w3-row">
+        <div class="w3-border w3-round-large w3-col" style="width: 64px; height: 76px; display:inline-block; background-color: #@Value.ToHexString()">
+        </div>
+        <div class="w3-rest w3-padding">
+            <input style="width:100%;" type="range" min="0" max="255" @bind=Value.Red>
+            <input style="width:100%;" type="range" min="0" max="255" @bind=Value.Blue>
+            <input style="width:100%;" type="range" min="0" max="255" @bind=Value.Green>
+        </div>
+    </div>
+    
+    <div>
+        @foreach (var colour in defaults) {
+            <div @onclick=@(()=>setColour(colour)) class="w3-border w3-round-large" style="width: 64px; height: 48px; display:inline-block; background-color: #@colour.ToHexString()">
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label {get; set;}
+    private List<RGB> defaults = new List<RGB> {
+        new RGB(97, 189, 79), 
+        new RGB(242, 214, 0),
+        new RGB(255, 159, 26),
+        new RGB(235, 90, 70),
+        new RGB(195, 119, 224),
+
+        new RGB(0, 121, 191), 
+        new RGB(0, 194, 224),
+        new RGB(81, 232, 152),
+        new RGB(255, 120, 203),
+        new RGB(52, 70, 99),
+    };
+
+    public RGB Value {get; set;} = new RGB(179, 186, 197);
+
+    private void setColour(RGB colour) {
+        this.Value.Red = colour.Red;
+        this.Value.Green = colour.Green;
+        this.Value.Blue = colour.Blue;
+    }
+}

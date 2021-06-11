@@ -1,0 +1,28 @@
+<Modal @ref=modal Title=@Title>
+    <MultilineTextInput @ref=input></MultilineTextInput>
+    <div class="w3-padding w3-center">
+        <button class="w3-green w3-button" @onclick=save>Update</button>
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public string Title {get; set;}
+    private Modal modal;
+    private MultilineTextInput input;
+
+    [Parameter] public Func<string> Getter {get; set;}
+    [Parameter] public Action<string> Setter {get; set;}
+
+    public void Open() {
+        if (Getter != null && input != null) {
+            input.Value = Getter();
+        }
+        modal?.Open();
+    }
+
+    private void save() {
+        Setter?.Invoke(input?.Value ?? string.Empty);
+        modal?.Close();
+    }
+
+}
