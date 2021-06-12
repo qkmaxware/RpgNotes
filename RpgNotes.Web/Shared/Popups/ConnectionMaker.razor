@@ -7,6 +7,14 @@
                     <option value=@kv.Key>@kv.Key</option>
                 }
             </select>
+            @if (generator == CustomConnection) {
+                <div class="w3-panel w3-leftbar">
+                    <label>Connection to</label>
+                    <input class="w3-input darker" type="text" placeholder="@(Current.Name)'s connection to @(customRelationOtherName)" @bind=forward>
+                    <label>Connection from</label>
+                    <input class="w3-input darker" type="text" placeholder="@(customRelationOtherName)'s connection to @(Current.Name)" @bind=reverse>
+                </div>
+            }
         </div>
         <div class="w3-padding">
             <label>With</label>
@@ -29,6 +37,9 @@
     private string generator;
     private string entryName;
 
+    private static string CustomConnection = "Custom";
+    private string customRelationOtherName => string.IsNullOrEmpty(entryName) ? "?" : entryName;
+
     private Modal modal;
     private Dictionary<string, Func<string,string,Connection>> generators = new Dictionary<string, Func<string, string, Connection>>{
         { "Parent of", Connection.ParentOf },
@@ -36,6 +47,10 @@
         { "In a relationship with", Connection.InARelationshipWith },
         { "Friends with", Connection.FriendsWith },
         { "Rivals with", Connection.RivalOf },
+        { "Dislikes", Dislikes },
+        { "Studied with", StudiedWith },
+        { "Taught", Taught },
+        { "Learned from", (student, teacher) => Taught(teacher, student) },
         { "Owner of", Connection.OwnerOf },
         { "Owned by", (item, owner) => Connection.OwnerOf(owner, item) },
         { "Leader of", Connection.LeaderOf },
@@ -48,6 +63,11 @@
     [Parameter] public Action<Connection> OnAdd {get; set;}
 
     public void Open() {
+        forward = null;
+        reverse = null;
+        if (!generators.ContainsKey(CustomConnection)) {
+            generators.Add( CustomConnection, (from, to) => CustomConnectionBuilder(from, to) );
+        }
         modal?.Open();
     }
 
@@ -63,4 +83,38 @@
             Console.WriteLine(entryName);
         }
     }
+
+    #region Other Connections
+    private static Connection Dislikes (string fromGuid, string toGuid) {
+        return new Connection {
+            From = fromGuid, To = toGuid,
+            ForwardRelation = "Dislikes",
+            ReverseRelation = "Disliked by",
+        };
+    }
+    private static Connection StudiedWith (string fromGuid, string toGuid) {
+        return new Connection {
+            From = fromGuid, To = toGuid,
+            ForwardRelation = "Studied with",
+            ReverseRelation = "Studied with",
+        };
+    }
+    private static Connection Taught (string fromGuid, string toGuid) {
+        return new Connection {
+            From = fromGuid, To = toGuid,
+            ForwardRelation = "Taught",
+            ReverseRelation = "Learned from",
+        };
+    }
+
+    private string forward;
+    private string reverse;
+    private Connection CustomConnectionBuilder (string fromGuid, string toGuid) {
+        return new Connection {
+            From = fromGuid, To = toGuid,
+            ForwardRelation = forward,
+            ReverseRelation = reverse,
+        }; 
+    }
+    #endregion
 }

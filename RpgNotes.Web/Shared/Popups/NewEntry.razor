@@ -26,7 +26,9 @@
             Description = desc.Value,
         };
 
-        modal?.Close();
-        OnCreate?.Invoke(entity);
+        if (!string.IsNullOrEmpty(name.Value)) {
+            modal?.Close();
+            OnCreate?.Invoke(entity);
+        }
     }
 }
