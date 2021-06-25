@@ -1,3 +1,4 @@
+@using System.Linq;
 @inject AppData Data;
 
 <Modal @ref=modal Title="New Campaign">
@@ -109,12 +110,47 @@
             IconImage = Image.FromUrl("logos/fate.svg"),
         },
         new RpgSystem {
-            Name = "Other",
+            Name = "Risus",
+            Publisher = "S. John Ross and Dave LeCompte",
+            ThemeColour = new RGB(131, 37, 125),
+            Description = "",
+            WebLink = "https://www.drivethrurpg.com/product/170294/Risus-The-Anything-RPG",
+            IconImage = Image.FromUrl("logos/risus.svg"),
+        },
+        new RpgSystem {
+            Name = "The Expanse Roleplaying Game",
+            Publisher = "Green Ronin Publishing",
+            ThemeColour = new RGB(255, 255, 255),
+            Description = "",
+            WebLink = "https://greenroninstore.com/collections/the-expanse-rpg",
+            IconImage = Image.FromUrl("logos/expanse.svg"),
+        },
+        new RpgSystem {
+            Name = "Call of Cthulhu",
+            Publisher = "Chaosium Inc.",
+            ThemeColour = new RGB(0, 0, 0),
+            Description = "",
+            WebLink = "https://www.chaosium.com/call-of-cthulhu-rpg/",
+            IconImage = Image.FromUrl("logos/cthulhu.svg"),
+        },
+    }.OrderBy(game => game.Name)
+    .Concat(new List<RpgSystem> {
+        // These 2 are always at the bottom 
+        new RpgSystem {
+            Name = "Other D6",
+            Publisher = "Many",
+            ThemeColour = new RGB(255, 255, 255),
+            Description = "",
+            WebLink = "",
+            IconImage = Image.FromUrl("logos/genericd6.svg"),
+        },
+        new RpgSystem {
+            Name = "Other D20",
             Publisher = "Many",
             ThemeColour = new RGB(255, 255, 255),
             Description = "",
             WebLink = "",
             IconImage = Image.FromUrl("logos/generic.svg"),
         },
-    };
+    }).ToList();
 }
