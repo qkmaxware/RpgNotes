@@ -1,0 +1,17 @@
+@using MarkdownSharp
+
+<div>
+    @((MarkupString)GenerateHTML())
+</div>
+
+@code {
+    [Parameter] public string Content {get; set;}
+
+    private static MarkdownSharp.Markdown md = new MarkdownSharp.Markdown();
+
+    private string GenerateHTML() {
+        if (Content == null)
+            return string.Empty;
+        return md.Transform(this.Content);
+    }
+}

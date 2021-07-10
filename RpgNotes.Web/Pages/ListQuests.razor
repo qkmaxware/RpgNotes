@@ -5,6 +5,7 @@
 
 @if (Campaign?.Entries != null) {
     <Navigator Title="Quests" Previous=@($"campaign/{id}")>
+        <button class="w3-button" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/search"))>&#x1F50E;&#xFE0E;</button>
         <button class="w3-button" @onclick=@(() => openCreator())>&#x2b;</button>
     </Navigator>
     <div class="w3-bar dark">

@@ -1,4 +1,9 @@
 <Modal @ref=modal Title=@Title>
+    @if (Markdown){
+        <p>
+            This input is trated as <b>Markdown</b>. To learn about how to use <b>Markdown</b> formatting click <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">here</a>. 
+        </p>
+    }
     <MultilineTextInput @ref=input></MultilineTextInput>
     <div class="w3-padding w3-center">
         <button class="w3-green w3-button" @onclick=save>Update</button>
@@ -12,10 +17,11 @@
 
     [Parameter] public Func<string> Getter {get; set;}
     [Parameter] public Action<string> Setter {get; set;}
+    [Parameter] public bool Markdown {get; set;} = false;
 
     public void Open() {
         if (Getter != null && input != null) {
-            input.Value = Getter();
+            input.SetValue(Getter());
         }
         modal?.Open();
     }

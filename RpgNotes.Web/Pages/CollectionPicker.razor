@@ -7,6 +7,7 @@
 
 } else {
     <Navigator Title=@Campaign.Name Previous="">
+        <button class="w3-button" @onclick=@(() => Nav.NavigateTo($"campaign/{id}/search"))>&#x1F50E;&#xFE0E;</button>
         <span class="w3-dropdown-hover" style="float:inherit;">
             <button class="w3-button darker">&#x22EE;</button>
             <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0;">

@@ -13,187 +13,191 @@
         </span>
     </Navigator>
 
-    <div class="w3-bar dark">
-        <button style="width:49.5%" class="w3-bar-item w3-button @(firstTab ? "highlight" : string.Empty)" @onclick=@(() => firstTab=true)>
-            Summary
-        </button>
-        <button style="width:49.5%" class="w3-bar-item w3-button @(!firstTab ? "highlight" : string.Empty)" @onclick=@(() => firstTab=false)>
-            Connections
-        </button>
-    </div>
-
-    @if (firstTab) {
-    <div>
-        @if (entry.CharacterData != null) {
+    <div class="w3-row">
+        <div class="w3-threequarter">
             <div class="w3-round-large w3-margin dark">
                 <div class="darker w3-display-container">
                     <div class="w3-padding w3-large">
-                        Personal
+                        Description
+                    </div>
+                    <div class="w3-display-topright">
+                        <button class="w3-button" style="padding:6px;" @onclick=@(() => editDescription?.Open())>
+                            <img src="images/edit.svg" style="width: auto; height: 30px;">
+                        </button>
                     </div>
                 </div>
                 <div class="w3-padding">
-                    <div class="w3-margin-bottom">
-                        <label>Status</label>
-                        <div class="w3-bar darker">
-                            <button style="width:49.5%" class="w3-bar-item w3-button @(!entry.CharacterData.IsDead ? "highlight" : string.Empty)" @onclick=@(() => entry.CharacterData.IsDead=false)>
-                                Alive
-                            </button>
-                            <button style="width:49.5%" class="w3-bar-item w3-button @( entry.CharacterData.IsDead ? "highlight" : string.Empty)" @onclick=@(() => entry.CharacterData.IsDead=true)>
-                                Dead
-                            </button>
-                        </div
-                    </div>
-                    <div class="w3-margin-bottom">
-                        <label>Species</label>
-                        <input class="w3-input darker" type="text" @bind=entry.CharacterData.Species>
-                    </div>
-                    <div class="w3-margin-bottom">
-                        <label>Age</label>
-                        <input class="w3-input darker" type="number" @bind=entry.CharacterData.Age>
-                    </div>
+                    <Markdown Content=@entry.Description></Markdown>
                 </div>
             </div>
-        }
-        @if (entry.QuestData != null) {
+            <TextEditorPopup @ref=editDescription Title="Edit Description" Markdown=true Getter=@(() => entry.Description) Setter=@((val) => { entry.Description = val; StateHasChanged(); })></TextEditorPopup>
+        </div>
+
+        <div class="w3-quarter w3-right">
+
             <div class="w3-round-large w3-margin dark">
-                <div class="darker w3-display-container">
-                    <div class="w3-padding w3-large">
-                        Status
-                    </div>
-                </div>
-                <div class="w3-padding">
-                    <div class="w3-margin-bottom">
-                        <div class="w3-bar darker">
-                            <button style="width:49.5%" class="w3-bar-item w3-button @(!entry.QuestData.IsComplete ? "highlight" : string.Empty)" @onclick=@(() => entry.QuestData.IsComplete=false)>
-                                Open
-                            </button>
-                            <button style="width:49.5%" class="w3-bar-item w3-button @( entry.QuestData.IsComplete ? "highlight" : string.Empty)" @onclick=@(() => entry.QuestData.IsComplete=true)>
-                                Complete
-                            </button>
+                <div class="darker w3-display-container w3-margin-bottom">
+                    <div class="w3-large">
+                        <div class="w3-bar" style="display:flex; flex-direction:row;">
+                            @foreach (var tab in Enum.GetValues(typeof(Tabs))) {
+                                <button style="flex-grow:1" class="w3-bar-item w3-button border-darker @(Tab == (Tabs)tab ? "dark" : string.Empty)" @onclick=@(() => Tab=(Tabs)tab)>
+                                    @tab.ToString()
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-        @if (entry.LocationData != null) {
+                <div>
+                    @if (Tab == Tabs.Details) {
+                    <div>
+                        @if (entry.CharacterData != null) {
+                            <div class="w3-round-large dark">
+                                <div class="w3-padding">
+                                    <div class="w3-margin-bottom">
+                                        <label>Status</label>
+                                        <div class="w3-bar darker">
+                                            <button style="width:49.5%" class="w3-bar-item w3-button @(!entry.CharacterData.IsDead ? "highlight" : string.Empty)" @onclick=@(() => entry.CharacterData.IsDead=false)>
+                                                Alive
+                                            </button>
+                                            <button style="width:49.5%" class="w3-bar-item w3-button @( entry.CharacterData.IsDead ? "highlight" : string.Empty)" @onclick=@(() => entry.CharacterData.IsDead=true)>
+                                                Dead
+                                            </button>
+                                        </div
+                                    </div>
+                                    <div class="w3-margin-bottom">
+                                        <label>Species</label>
+                                        <input class="w3-input darker" type="text" @bind=entry.CharacterData.Species>
+                                    </div>
+                                    <div class="w3-margin-bottom">
+                                        <label>Age</label>
+                                        <input class="w3-input darker" type="number" @bind=entry.CharacterData.Age>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (entry.QuestData != null) {
+                            <div class="w3-round-large dark">
+                                <div class="w3-padding">
+                                    <div class="w3-margin-bottom">
+                                        <div class="w3-bar darker">
+                                            <button style="width:49.5%" class="w3-bar-item w3-button @(!entry.QuestData.IsComplete ? "highlight" : string.Empty)" @onclick=@(() => entry.QuestData.IsComplete=false)>
+                                                Open
+                                            </button>
+                                            <button style="width:49.5%" class="w3-bar-item w3-button @( entry.QuestData.IsComplete ? "highlight" : string.Empty)" @onclick=@(() => entry.QuestData.IsComplete=true)>
+                                                Complete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (entry.LocationData != null) {
 
-        }
-        @if (entry.WorldData != null) {
+                        }
+                        @if (entry.WorldData != null) {
 
-        }
-        @if (entry.FactionData != null) {
+                        }
+                        @if (entry.FactionData != null) {
 
-        }
-        @if (entry.ItemData != null) {
-            
-        }
+                        }
+                        @if (entry.ItemData != null) {
+                            
+                        }
 
-        <div class="w3-round-large w3-margin dark">
-            <div class="darker w3-display-container">
-                <div class="w3-padding w3-large">
-                    Description
+                        <div class="w3-round-large dark">
+                            <div class="darker w3-display-container">
+                                <div class="w3-padding w3-large">
+                                    Notes
+                                </div>
+                                <div class="w3-display-topright">
+                                    <button class="w3-button" style="padding:6px;" @onclick=@(() => editNotes?.Open())>
+                                        <img src="images/edit.svg" style="width: auto; height: 30px;">
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="w3-padding">
+                                @entry.Notes
+                            </div>
+                        </div>
+                        <TextEditorPopup @ref=editNotes Title="Edit Notes" Getter=@(() => entry.Notes) Setter=@((val) => { entry.Notes = val; StateHasChanged(); })></TextEditorPopup>
+
+                        <div class="w3-round-large dark">
+                            <div class="darker w3-display-container">
+                                <div class="w3-padding w3-large">
+                                    Tags
+                                </div>
+                                <div class="w3-display-topright">
+                                    <button class="w3-button" style="padding:6px;" @onclick=@(() => editTags?.Open(tags))>
+                                        <img src="images/edit.svg" style="width: auto; height: 30px;">
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="w3-padding">
+                                @foreach (var tag in tags) {
+                                    <TagDrawer Tag=tag></TagDrawer>
+                                }
+                            </div>
+                        </div>
+                        <TagPicker @ref=editTags Options=Campaign.Tags OnSave=@((next) => { tags=next; entry.Tags=next.Select(x => x.Name).ToList(); StateHasChanged(); })></TagPicker>
+
+                        <div class="w3-round-large dark">
+                            <div class="darker w3-display-container">
+                                <div class="w3-padding w3-large">
+                                    Images
+                                </div>
+                                <div class="w3-display-topright">
+                                    <button class="w3-button" style="padding:6px;" @onclick=@(() => addWebImage?.Open())>
+                                        <img src="images/image.www.svg" style="width: auto; height: 30px;">
+                                    </button>
+                                    <button class="w3-button" style="padding:6px;" @onclick=@(() => addLocalImage?.Open())>
+                                        <img src="images/image.file.svg" style="width: auto; height: 30px;">
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="w3-padding">
+                                @foreach (var image in entry.Images) {
+                                    <img src=@image.Url style="max-width: 120px; height: auto;" @onclick=@(() => bigImage?.Open(image))>
+                                }
+                            </div>
+                        </div>
+                        <UrlImagePicker @ref=addWebImage OnSave=@((img)=>{ entry.Images.Add(img); StateHasChanged(); })></UrlImagePicker>
+                        <LocalFileImagePicker @ref=addLocalImage OnSave=@((img)=>{ entry.Images.Add(img); StateHasChanged(); })></LocalFileImagePicker>
+                        <ImageViewer @ref=bigImage OnDelete=@((img) => { entry.Images.Remove(img); StateHasChanged(); })></ImageViewer>
+                    </div>
+                    } else if (Tab == Tabs.Connections) {
+                    <div>
+                        @{
+                        var c = Campaign;
+                        foreach (var connection in c.Entries.EnumerateConnections(entry)) {
+                            var guid = connection.GetOtherParticipant(eid);
+                            <div class="w3-padding">
+                                <div class="dark w3-padding w3-round-xlarge" >
+                                    @connection.RelationshipStringFor(eid) @c.Entries[guid]?.Name
+                                    <div class="w3-row">
+                                        <div class="w3-col s6">
+                                            <span class="w3-button" @onclick=@(()=>gotoConnection(guid))>
+                                                <img src="images/link.svg" width=20 height=20>
+                                            </span> 
+                                        </div>
+                                        <div class="w3-col s6 w3-right-align">
+                                            <span class="w3-button" @onclick=@(()=>c.Entries.Disconnect(connection))>&times;</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="w3-padding">
+                            <button class="w3-green w3-button w3-block" @onclick=@(() => addConnection?.Open())>Add Connection</button>
+                        </div>
+                        <ConnectionMaker @ref=addConnection Current=@entry Entries=@c.Entries OnAdd=@((conn) => { c.Entries.Connect(conn); StateHasChanged(); })></ConnectionMaker>
+                        }
+                    </div>
+                    }
                 </div>
-                <div class="w3-display-topright">
-                    <button class="w3-button" style="padding:6px;" @onclick=@(() => editDescription?.Open())>
-                        <img src="images/edit.svg" style="width: auto; height: 30px;">
-                    </button>
-                </div>
-            </div>
-            <div class="w3-padding">
-                @entry.Description
             </div>
         </div>
-        <TextEditorPopup @ref=editDescription Title="Edit Description" Getter=@(() => entry.Description) Setter=@((val) => { entry.Description = val; StateHasChanged(); })></TextEditorPopup>
 
-        <div class="w3-round-large w3-margin dark">
-            <div class="darker w3-display-container">
-                <div class="w3-padding w3-large">
-                    Notes
-                </div>
-                <div class="w3-display-topright">
-                    <button class="w3-button" style="padding:6px;" @onclick=@(() => editNotes?.Open())>
-                        <img src="images/edit.svg" style="width: auto; height: 30px;">
-                    </button>
-                </div>
-            </div>
-            <div class="w3-padding">
-                @entry.Notes
-            </div>
-        </div>
-        <TextEditorPopup @ref=editNotes Title="Edit Notes" Getter=@(() => entry.Notes) Setter=@((val) => { entry.Notes = val; StateHasChanged(); })></TextEditorPopup>
-
-        <div class="w3-round-large w3-margin dark">
-            <div class="darker w3-display-container">
-                <div class="w3-padding w3-large">
-                    Tags
-                </div>
-                <div class="w3-display-topright">
-                    <button class="w3-button" style="padding:6px;" @onclick=@(() => editTags?.Open(tags))>
-                        <img src="images/edit.svg" style="width: auto; height: 30px;">
-                    </button>
-                </div>
-            </div>
-            <div class="w3-padding">
-                @foreach (var tag in tags) {
-                    <TagDrawer Tag=tag></TagDrawer>
-                }
-            </div>
-        </div>
-        <TagPicker @ref=editTags Options=Campaign.Tags OnSave=@((next) => { tags=next; entry.Tags=next.Select(x => x.Name).ToList(); StateHasChanged(); })></TagPicker>
-
-        <div class="w3-round-large w3-margin dark">
-            <div class="darker w3-display-container">
-                <div class="w3-padding w3-large">
-                    Images
-                </div>
-                <div class="w3-display-topright">
-                    <button class="w3-button" style="padding:6px;" @onclick=@(() => addWebImage?.Open())>
-                        <img src="images/image.www.svg" style="width: auto; height: 30px;">
-                    </button>
-                    <button class="w3-button" style="padding:6px;" @onclick=@(() => addLocalImage?.Open())>
-                        <img src="images/image.file.svg" style="width: auto; height: 30px;">
-                    </button>
-                </div>
-            </div>
-            <div class="w3-padding">
-                @foreach (var image in entry.Images) {
-                    <img src=@image.Url style="max-width: 120px; height: auto;" @onclick=@(() => bigImage?.Open(image))>
-                }
-            </div>
-        </div>
-        <UrlImagePicker @ref=addWebImage OnSave=@((img)=>{ entry.Images.Add(img); StateHasChanged(); })></UrlImagePicker>
-        <LocalFileImagePicker @ref=addLocalImage OnSave=@((img)=>{ entry.Images.Add(img); StateHasChanged(); })></LocalFileImagePicker>
-        <ImageViewer @ref=bigImage OnDelete=@((img) => { entry.Images.Remove(img); StateHasChanged(); })></ImageViewer>
     </div>
-    } else {
-    <div>
-        @{
-        var c = Campaign;
-        foreach (var connection in c.Entries.EnumerateConnections(entry)) {
-            var guid = connection.GetOtherParticipant(eid);
-            <div class="w3-padding">
-                <div class="dark w3-padding w3-round-xlarge" >
-                    @connection.RelationshipStringFor(eid) @c.Entries[guid]?.Name
-                    <div class="w3-row">
-                        <div class="w3-col s6">
-                            <span class="w3-button" @onclick=@(()=>gotoConnection(guid))>
-                                <img src="images/link.svg" width=20 height=20>
-                            </span> 
-                        </div>
-                        <div class="w3-col s6 w3-right-align">
-                            <span class="w3-button" @onclick=@(()=>c.Entries.Disconnect(connection))>&times;</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-        <div class="w3-padding">
-            <button class="w3-green w3-button w3-block" @onclick=@(() => addConnection?.Open())>Add Connection</button>
-        </div>
-        <ConnectionMaker @ref=addConnection Current=@entry Entries=@c.Entries OnAdd=@((conn) => { c.Entries.Connect(conn); StateHasChanged(); })></ConnectionMaker>
-        }
-    </div>
-    }
 }
 <Confirm @ref=confirmation></Confirm>
 
@@ -223,7 +227,10 @@
         }
     }
 
-    private bool firstTab = true;
+    private enum Tabs {
+        Details, Connections
+    }
+    private Tabs Tab = (Tabs)0;
 
     private TextEditorPopup editDescription;
     private TextEditorPopup editNotes;
@@ -238,7 +245,7 @@
             Nav.NavigateTo($"campaign/{id}/entries/{guid}", noHistory: true); 
             this.eid = guid;
             entry=Campaign.Entries[guid]; 
-            firstTab=true;
+            Tab=(Tabs)0;
             StateHasChanged();
         }
     }

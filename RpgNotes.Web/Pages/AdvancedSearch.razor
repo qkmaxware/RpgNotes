@@ -1,0 +1,71 @@
+@page "/campaign/{id:int}/search"
+@inject AppData Data;
+@inject History Nav;
+@using RpgNotes.Web.Shared.Popups;
+
+<Navigator Title="Search" Previous=@($"campaign/{id}")>
+</Navigator>
+<input class="w3-input dark" type="text" placeholder="name" @bind=filter>
+<div class="dark w3-margin-bottom">
+    @if (Campaign != null && Campaign.Tags != null) {
+        foreach (var tag in Campaign.Tags) {
+            <button class="w3-button @(isSelected(tag) ? "highlight" : string.Empty)" @onclick=@(()=>toggle(tag))>
+                <TagDrawer Tag=tag></TagDrawer>
+            </button>
+        }
+    }
+</div>
+
+<ListView Items=@GetEntries()>
+    <div class="w3-padding" @onclick=@(() => openEntity(context))>
+        <div>
+            <span class="w3-large">@context.Name</span><br>
+        </div>
+    </div>
+</ListView>
+
+@code {
+    [Parameter] public int id { get; set; }
+    private string filter;
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+    private List<Tag> tagFilters = new List<Tag>();
+
+    private IEnumerable<Entry> GetEntries() {
+        if (Campaign == null)
+            yield break;
+
+        foreach (var entry in Campaign.Entries.Enumerate()) {
+            if (nameMatches(this.filter, entry) && tagMatches(this.tagFilters, entry))
+                yield return entry;
+        }
+    }
+
+    private bool nameMatches(string filter, Entry entry) {
+        return string.IsNullOrEmpty(filter) || entry.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private bool tagMatches(List<Tag> tags, Entry entry) {
+        var names = tags.Select(tag => tag.Name);
+        return 
+            (tags == null || tags.Count == 0)    // No tags
+            || (entry.Tags != null && entry.Tags.Where(tag => names.Contains(tag)).Any());
+    }
+
+    private bool isSelected(Tag tag) {
+        return tagFilters != null && tagFilters.Contains(tag);
+    }
+    private void toggle(Tag tag) {
+        if (tagFilters != null) {
+            if (!tagFilters.Contains(tag)) {
+                tagFilters.Add(tag);
+            } else {
+                tagFilters.Remove(tag);
+            }
+        }
+    }
+
+    private void openEntity(Entry entry) {
+        var eid = Campaign.Entries.GuidOf(entry);
+        Nav.NavigateTo($"campaign/{id}/entries/{eid}");
+    }
+}
