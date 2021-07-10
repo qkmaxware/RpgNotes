@@ -3,45 +3,117 @@
 @inject History Nav;
 @using RpgNotes.Web.Shared.Popups;
 
-<Navigator Title="Search" Previous=@($"campaign/{id}")>
+<Navigator Title="Advanced Search" Previous=@($"campaign/{id}")>
 </Navigator>
-<input class="w3-input dark" type="text" placeholder="name" @bind=filter>
-<div class="dark w3-margin-bottom">
-    @if (Campaign != null && Campaign.Tags != null) {
-        foreach (var tag in Campaign.Tags) {
-            <button class="w3-button @(isSelected(tag) ? "highlight" : string.Empty)" @onclick=@(()=>toggle(tag))>
-                <TagDrawer Tag=tag></TagDrawer>
+<div class="dark w3-container w3-margin-bottom">
+<p>
+    <strong>Find pages with...</strong>
+</p>
+<div class="w3-container">
+    <label>Names like:</label>
+    <input class="w3-input darker" type="text" placeholder="name" @bind=nameFilter>
+    <label>Descriptions containing:</label>
+    <input class="w3-input darker" type="text" placeholder="text" @bind=descFilter>
+</div>
+<p>
+    <strong>Then narrow results by...</strong>
+</p>
+<div class="w3-container">
+    <label>Type:</label>
+    <div>
+        @foreach (var type in types) {
+            <button class="w3-button w3-margin-bottom @(isTypeSelected(type.Key) ? "highlight" : string.Empty)" @onclick=@(() => toggleType(type.Key))>
+                @type.Key
             </button>
         }
-    }
-</div>
-
-<ListView Items=@GetEntries()>
-    <div class="w3-padding" @onclick=@(() => openEntity(context))>
-        <div>
-            <span class="w3-large">@context.Name</span><br>
+    </div>
+    <label>Tags:</label>
+    <div>
+        @if (Campaign != null && Campaign.Tags != null) {
+            foreach (var tag in Campaign.Tags) {
+                <button class="w3-button @(isSelected(tag) ? "highlight" : string.Empty)" @onclick=@(()=>toggle(tag))>
+                    <TagDrawer Tag=tag></TagDrawer>
+                </button>
+            }
+        }
+        <div class="w3-center w3-padding">
+            <button class="w3-button @(searching ? "w3-grey" : "w3-green")" @onclick=beginSearch>Begin Search</button>
         </div>
     </div>
-</ListView>
+</div>
+</div>
+
+@if (!searching) {
+    if (searchResults != null) {
+        <ListView Items=@searchResults>
+            <div class="w3-padding" @onclick=@(() => openEntity(context))>
+                <div>
+                    <span class="w3-large">@context.Name</span><br>
+                </div>
+            </div>
+        </ListView>
+    }
+} else {
+    <div class="w3-center">
+        Searching... please wait
+    </div>
+}
 
 @code {
     [Parameter] public int id { get; set; }
-    private string filter;
+    private string nameFilter;
+    private string descFilter;
     public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
     private List<Tag> tagFilters = new List<Tag>();
+    private List<string> typeFilters = new List<string>();
+    private Dictionary<string, Func<Entry, bool>> types = new Dictionary<string, Func<Entry, bool>>{
+        {"Character", (e) => e.CharacterData != null},
+        {"Quest", (e) => e.QuestData != null},
+        {"Location", (e) => e.LocationData != null},
+        {"World", (e) => e.WorldData != null},
+        {"Faction", (e) => e.FactionData != null},
+        {"Item", (e) => e.ItemData != null},
+    };
+
+    private List<Entry> searchResults;
 
     private IEnumerable<Entry> GetEntries() {
         if (Campaign == null)
             yield break;
 
         foreach (var entry in Campaign.Entries.Enumerate()) {
-            if (nameMatches(this.filter, entry) && tagMatches(this.tagFilters, entry))
+            if (
+                nameMatches(this.nameFilter, entry) 
+                && descMatches(this.descFilter, entry) 
+                && typeMatches(this.typeFilters, entry)
+                && tagMatches(this.tagFilters, entry)
+            ) {
                 yield return entry;
+            }
         }
+    }
+
+    private bool searching = false;
+    private void beginSearch() {
+        if (searching != false)
+            return;
+
+        searching = true;
+        StateHasChanged();
+
+        Task.Run(() => {
+            searchResults = GetEntries().ToList();
+            searching = false;
+            InvokeAsync(StateHasChanged);
+        });
     }
 
     private bool nameMatches(string filter, Entry entry) {
         return string.IsNullOrEmpty(filter) || entry.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private bool descMatches(string filter, Entry entry) {
+        return string.IsNullOrEmpty(filter) || (entry.Description != null && entry.Description.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private bool tagMatches(List<Tag> tags, Entry entry) {
@@ -49,6 +121,13 @@
         return 
             (tags == null || tags.Count == 0)    // No tags
             || (entry.Tags != null && entry.Tags.Where(tag => names.Contains(tag)).Any());
+    }
+
+    private bool typeMatches(List<string> typeNames, Entry entry) {
+        var realTypes = types?.Where(t => typeNames.Contains(t.Key))?.ToList();
+        return 
+            (realTypes == null || realTypes.Count == 0) // No types defined
+            || (realTypes.Where(t => t.Value(entry)).Any()); // Matches any of the selector functions
     }
 
     private bool isSelected(Tag tag) {
@@ -60,6 +139,19 @@
                 tagFilters.Add(tag);
             } else {
                 tagFilters.Remove(tag);
+            }
+        }
+    }
+
+    private bool isTypeSelected(string type) {
+        return typeFilters != null && typeFilters.Contains(type);
+    }
+    private void toggleType(string type) {
+        if (typeFilters != null) {
+            if (!typeFilters.Contains(type)) {
+                typeFilters.Add(type);
+            } else {
+                typeFilters.Remove(type);
             }
         }
     }

@@ -14,26 +14,7 @@
     </Navigator>
 
     <div class="w3-row">
-        <div class="w3-threequarter">
-            <div class="w3-round-large w3-margin dark">
-                <div class="darker w3-display-container">
-                    <div class="w3-padding w3-large">
-                        Description
-                    </div>
-                    <div class="w3-display-topright">
-                        <button class="w3-button" style="padding:6px;" @onclick=@(() => editDescription?.Open())>
-                            <img src="images/edit.svg" style="width: auto; height: 30px;">
-                        </button>
-                    </div>
-                </div>
-                <div class="w3-padding">
-                    <Markdown Content=@entry.Description></Markdown>
-                </div>
-            </div>
-            <TextEditorPopup @ref=editDescription Title="Edit Description" Markdown=true Getter=@(() => entry.Description) Setter=@((val) => { entry.Description = val; StateHasChanged(); })></TextEditorPopup>
-        </div>
-
-        <div class="w3-quarter w3-right">
+        <div class="w3-col l3 w3-right">
 
             <div class="w3-round-large w3-margin dark">
                 <div class="darker w3-display-container w3-margin-bottom">
@@ -196,7 +177,24 @@
                 </div>
             </div>
         </div>
-
+        <div class="w3-col l9">
+            <div class="w3-round-large w3-margin dark">
+                <div class="darker w3-display-container">
+                    <div class="w3-padding w3-large">
+                        Description
+                    </div>
+                    <div class="w3-display-topright">
+                        <button class="w3-button" style="padding:6px;" @onclick=@(() => editDescription?.Open())>
+                            <img src="images/edit.svg" style="width: auto; height: 30px;">
+                        </button>
+                    </div>
+                </div>
+                <div class="w3-padding">
+                    <Markdown Content=@entry.Description></Markdown>
+                </div>
+            </div>
+            <TextEditorPopup @ref=editDescription Title="Edit Description" Markdown=true Getter=@(() => entry.Description) Setter=@((val) => { entry.Description = val; StateHasChanged(); })></TextEditorPopup>
+        </div>
     </div>
 }
 <Confirm @ref=confirmation></Confirm>
