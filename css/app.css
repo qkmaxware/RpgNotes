@@ -1,3 +1,7 @@
+h1 {
+    border-bottom: 1px solid white;
+}
+
 .main {
     background-color: #525252;
     color: white;
@@ -13,9 +17,17 @@
     color: white;
 }
 
+.border-darker {
+    border: 1px solid #313131;
+}
+
 .darkest {
     background-color: #1a1a1a;
     color: white;
+}
+
+.border-darkest {
+    border: 1px solid #1a1a1a;
 }
 
 .highlight {
