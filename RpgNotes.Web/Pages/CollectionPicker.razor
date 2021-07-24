@@ -72,9 +72,9 @@
 
     private void archive() {
         confirmation.RequestConfirmation(archiveNow);
-        
     }
     private void archiveNow() {
         Campaign.IsArchived = true;
+        Nav.NavigateTo($"archive/{id}");
     }
 }

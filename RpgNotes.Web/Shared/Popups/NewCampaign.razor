@@ -52,105 +52,31 @@
         OnCreate?.Invoke();
     }   
 
-    private static List<RpgSystem> systems = new List<RpgSystem> {
-        new RpgSystem {
-            Name = "D&D 5E",
-            Publisher = "Wizards of the Coast",
-            ThemeColour = new RGB(255, 0, 0),
-            Description = "",
-            WebLink = "https://dnd.wizards.com/",
-            IconImage = Image.FromUrl("logos/dnd.svg"),
-        },
-        new RpgSystem {
-            Name = "Pathfinder",
-            Publisher = "Paizo",
-            ThemeColour = new RGB(225, 218, 145),
-            Description = "",
-            WebLink = "https://paizo.com/pathfinder",
-            IconImage = Image.FromUrl("logos/pathfinder.svg"),
-        },
-        new RpgSystem {
-            Name = "Starfinder",
-            Publisher = "Paizo",
-            ThemeColour = new RGB(36, 163, 231),
-            Description = "",
-            WebLink = "https://paizo.com/pathfinder",
-            IconImage = Image.FromUrl("logos/starfinder.svg"),
-        },
-        new RpgSystem {
-            Name = "Star Trek Adventures",
-            Publisher = "Mōdiphiüs Entertainment",
-            ThemeColour = new RGB(192, 198, 199),
-            Description = "",
-            WebLink = "https://www.modiphius.net/collections/star-trek-adventures",
-            IconImage = Image.FromUrl("logos/sta.svg"),
-        },
-        new RpgSystem {
-            Name = "Dungeon World",
-            Publisher = "Sage LaTorra and Adam Koebel",
-            ThemeColour = new RGB(106, 126, 114),
-            Description = "",
-            WebLink = "https://dungeon-world.com/",
-            IconImage = Image.FromUrl("logos/dw.svg"),
-        },
-        new RpgSystem {
-            Name = "Star Wars the Roleplaying Game",
-            Publisher = "Fantasy Flight Games",
-            ThemeColour = new RGB(255, 197, 0),
-            Description = "",
-            WebLink = "https://www.fantasyflightgames.com/en/products/star-wars-the-roleplaying-game-30th-anniversary-edition/",
-            IconImage = Image.FromUrl("logos/sw.svg"),
-        },
-        new RpgSystem {
-            Name = "Fate",
-            Publisher = "Evil Hat Productions",
-            ThemeColour = new RGB(128, 153, 207),
-            Description = "",
-            WebLink = "https://www.evilhat.com/home/fate-core/",
-            IconImage = Image.FromUrl("logos/fate.svg"),
-        },
-        new RpgSystem {
-            Name = "Risus",
-            Publisher = "S. John Ross and Dave LeCompte",
-            ThemeColour = new RGB(131, 37, 125),
-            Description = "",
-            WebLink = "https://www.drivethrurpg.com/product/170294/Risus-The-Anything-RPG",
-            IconImage = Image.FromUrl("logos/risus.svg"),
-        },
-        new RpgSystem {
-            Name = "The Expanse Roleplaying Game",
-            Publisher = "Green Ronin Publishing",
-            ThemeColour = new RGB(255, 255, 255),
-            Description = "",
-            WebLink = "https://greenroninstore.com/collections/the-expanse-rpg",
-            IconImage = Image.FromUrl("logos/expanse.svg"),
-        },
-        new RpgSystem {
-            Name = "Call of Cthulhu",
-            Publisher = "Chaosium Inc.",
-            ThemeColour = new RGB(0, 0, 0),
-            Description = "",
-            WebLink = "https://www.chaosium.com/call-of-cthulhu-rpg/",
-            IconImage = Image.FromUrl("logos/cthulhu.svg"),
-        },
-    }.OrderBy(game => game.Name)
-    .Concat(new List<RpgSystem> {
-        // These 2 are always at the bottom 
-        new RpgSystem {
-            Name = "Other D6",
-            Publisher = "Many",
-            ThemeColour = new RGB(255, 255, 255),
-            Description = "",
-            WebLink = "",
-            IconImage = Image.FromUrl("logos/genericd6.svg"),
-        },
-        new RpgSystem {
-            Name = "Other D20",
-            Publisher = "Many",
-            ThemeColour = new RGB(255, 255, 255),
-            Description = "",
-            WebLink = "",
-            IconImage = Image.FromUrl("logos/generic.svg"),
-        },
-    }).ToList();
+    private static List<RpgSystem> systems = null;
+
+    protected override void OnInitialized() {
+        if (systems == null) {
+            systems = RpgSystem.FindRpgSystems()
+            .OrderBy(game => game.Name)
+            .Concat(new List<RpgSystem> {
+                // These 2 are always at the bottom 
+                new RpgSystem {
+                    Name = "Other D6",
+                    Publisher = "Many",
+                    ThemeColour = new RGB(255, 255, 255),
+                    Description = "",
+                    WebLink = "",
+                    IconImage = Image.FromUrl("logos/genericd6.svg"),
+                },
+                new RpgSystem {
+                    Name = "Other D20",
+                    Publisher = "Many",
+                    ThemeColour = new RGB(255, 255, 255),
+                    Description = "",
+                    WebLink = "",
+                    IconImage = Image.FromUrl("logos/generic.svg"),
+                },
+            }).ToList();
+        }
+    }
 }

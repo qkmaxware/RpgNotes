@@ -53,6 +53,9 @@
                                         <label>Age</label>
                                         <input class="w3-input darker" type="number" @bind=entry.CharacterData.Age>
                                     </div>
+                                    @if(entry.CharacterData.Attributes != null) {
+                                        <AttributeDrawer Attributes=entry.CharacterData.Attributes></AttributeDrawer>
+                                    }
                                 </div>
                             </div>
                         }

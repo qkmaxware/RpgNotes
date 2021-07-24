@@ -6,6 +6,7 @@ public class CharacterData {
     public bool IsDead {get; set;}
     public string Species {get; set;}
     public int? Age {get; set;}
+    public AttributesBlock Attributes {get; set;}
 }
 public class QuestData {
     public bool IsComplete {get; set;}

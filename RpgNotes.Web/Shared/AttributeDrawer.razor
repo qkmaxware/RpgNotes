@@ -1,0 +1,37 @@
+@if (Attributes != null) {
+    if (Attributes.Sections != null) {
+        foreach (var section in Attributes.Sections) {
+            <div class="w3-border-bottom w3-margin-bottom">
+                @section.Name
+            </div>
+            <div class="w3-row-padding">
+                @if(section.Attributes != null) {
+                    foreach (var attr in section.Attributes) {
+                        <div class="w3-margin-bottom w3-col s@(section.Layout.GridSize())">
+                            <div class="border-main">
+                                <div class="w3-center main">
+                                    @attr.Name
+                                </div>
+                                <div style="width: 100%;">
+                                    @if (attr.Type == AttributeType.String) {
+                                        <input type="text" @bind=attr.Value class="w3-input w3-center darker border-main">
+                                    } 
+                                    else if (attr.Type == AttributeType.MultilineString) {
+                                        <textarea class="w3-input darker border-main" type="text" @bind=attr.Value style="width: 100%; resize: vertical; height: 4em;"></textarea>
+                                    }
+                                    else if (attr.Type == AttributeType.Number) {
+                                        <input type="number" @bind=attr.Value class="w3-input w3-center darker border-main">
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    [Parameter] public AttributesBlock Attributes {get; set;} 
+}

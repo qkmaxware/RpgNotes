@@ -7,6 +7,10 @@ h1 {
     color: white;
 }
 
+.border-main {
+    border: 1px solid #525252;
+}
+
 .dark {
     background-color: #414141;
     color: white;

@@ -50,6 +50,8 @@
 
     private void addEntry(Entry entry) {
         entry.CharacterData = new CharacterData();
+        if (Campaign.System.AttributeTemplate != null)
+            entry.CharacterData.Attributes = Campaign.System.AttributeTemplate.Copy();
         Campaign.Entries.Add(entry);
         openEntity(entry);
     }
