@@ -1,6 +1,6 @@
 <Modal @ref=modal Title="Are You Sure?">
     <p class="w3-center">
-        Are you sure you want to perform this action?
+        @text
     </p>
     <div class="w3-row">
         <div class="w3-col s6">
@@ -16,7 +16,12 @@
     private Modal modal;
 
     private Action onConfirm;
+    private string text;
     public void RequestConfirmation(Action action) {
+        this.RequestConfirmation("Are you sure you want to perform this action?", action);
+    }
+    public void RequestConfirmation(string text, Action action) {
+        this.text = text;
         onConfirm = action;
         modal?.Open();
     }

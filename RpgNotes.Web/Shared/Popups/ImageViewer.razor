@@ -3,6 +3,9 @@
         <img src=@image.Url style="width: 100%; height: auto; margin-left:auto; margin-right:auto;">
     }
     <div class="w3-padding w3-center">
+        @if(CanMarkAsMap) {
+            <button class="w3-green w3-button" @onclick=mark>Mark As Map</button>
+        }
         <button class="highlight w3-button" @onclick=delete>Delete</button>
     </div>
 </Modal>
@@ -11,6 +14,8 @@
     private Modal modal;
     private Image image;
     [Parameter] public Action<Image> OnDelete {get; set;}
+    [Parameter] public bool CanMarkAsMap {get; set;}
+    [Parameter] public Action<Image> OnMarkAsMap {get; set;}
     public void Open(Image image) {
         this.image = image;
         modal?.Open();
@@ -19,5 +24,11 @@
     private void delete() {
         OnDelete?.Invoke(this.image);
         modal?.Close();
+    }
+    private void mark() {
+        if (CanMarkAsMap) {
+            OnMarkAsMap?.Invoke(this.image);
+            modal?.Close();
+        }
     }
 }

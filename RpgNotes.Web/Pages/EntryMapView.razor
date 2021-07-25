@@ -1,0 +1,134 @@
+@page "/campaign/{id:int}/entries/{eid}/map"
+@page "/campaign/{id:int}/entries/{eid}/map/{x:int}/{y:int}"
+@inject AppData Data;
+@using RpgNotes.Web.Shared.Popups
+
+@if(entry != null && background != null) {
+
+@if (IsMarkerMoveMode) {
+<div style="position: absolute; top: 0; left: 25%; right: 25%; z-index: 1;" class="dark w3-center w3-padding w3-large">
+    New Location For "@selectedEntryName"?
+</div>
+}
+
+<Map @ref=map OnClick=moveMarkerTo>
+    <Layer>
+        <img draggable="false" src="@background.Url">
+    </Layer>
+    <Layer>
+        @if (this.markers != null) {
+            foreach (var kv in this.markers) {
+                var entry = kv.Key;
+                foreach (var conn in kv.Value) {
+                    if (conn.Position != null) {
+                    <img draggable="false" @onclick=@(() => onClickMarker(entry, conn)) src="@conn.Position.Marker" style="height: @(MarkerSizePx)px; width: auto; position: absolute; top: @(conn.Position.Y - MarkerSizePx)px; left:@(conn.Position.X - MarkerSizePx/2)px;">
+                    }
+                }
+            }
+        }
+    </Layer>
+</Map>
+   
+}
+
+<MarkerEditor @ref="editor" OnRelocate=beginRelocation></MarkerEditor>
+
+@code {
+    [Parameter] public int id { get; set; }
+    public Campaign Campaign => Data.Campaigns == null ? null : Data.Campaigns.ElementAtOrDefault(id);
+    [Parameter] public string eid {get; set;}
+    private Entry entry;
+    [Parameter] public int? x { get; set; }
+    [Parameter] public int? y { get; set; }
+
+    private Image background;
+    private int MarkerSizePx = 32;
+    private Dictionary<Entry, List<Connection>> markers;
+
+    public static Connection AutoOpenEditor;
+
+    protected override void OnInitialized() {
+        editor?.SetCampaign(this.id);
+
+        var c = Campaign;
+        if (c == null) {
+            entry = null;
+        } else {
+            entry = c.Entries?.EntryOrDefault(eid);
+        }
+
+        background = entry?.LocationData?.Map ?? entry?.WorldData?.Map;
+
+        this.markers = new Dictionary<Entry, List<Connection>>();
+        if (this.x.HasValue && this.y.HasValue) {
+            // User has provided a value, make a blank marker for them
+        }
+        foreach (var connection in c.Entries.EnumerateConnections(this.entry)) {
+            // If connection's other entity is located within me, and a marker exists, add it
+            if (connection.Position == null)
+                continue;
+
+            var other = connection.GetOtherParticipant(this.eid);
+            var otherEntry = c.Entries[other];
+            if (otherEntry == null)
+                continue;
+            
+            if (
+                (connection.MapEntity == ConnectionMember.To && this.eid == connection.To)
+                || (connection.MapEntity == ConnectionMember.From && this.eid == connection.From)
+            ) {
+                // Case where I am the map, and the map is the TO entry
+                // Case where I am the map, and the map is the FROM entry
+                if (this.markers.ContainsKey(otherEntry)) {
+                    this.markers[otherEntry].Add(connection);
+                } else {
+                    this.markers[otherEntry] = new List<Connection>{ connection };
+                }
+            } else {
+                // In this relation I am not the map (maybe I am a location on another's map?)
+                continue;
+            }
+        }
+
+        if (AutoOpenEditor != null && AutoOpenEditor.Position != null) {
+            // Get the entity for this connection
+            var guid = AutoOpenEditor.MapEntity == ConnectionMember.To ? AutoOpenEditor.From : AutoOpenEditor.To;
+            var entity = c.Entries[guid];
+            if (entity != null) {
+                this.selectedEntryName = entity.Name;
+                this.selectedConnection = AutoOpenEditor;
+                IsMarkerMoveMode = true;
+            }
+            AutoOpenEditor = null;
+        }
+    }
+
+    private Map map;
+    private MarkerEditor editor;
+
+    private string selectedEntryName;
+    private Connection selectedConnection;
+    private bool IsMarkerMoveMode = false;
+    private void onClickMarker(Entry e, Connection m) {
+        this.selectedConnection = m;
+        this.selectedEntryName = e.Name;
+        editor.Edit(selectedEntryName, selectedConnection);
+        StateHasChanged();
+    }
+    private void beginRelocation() {
+        if (this.selectedConnection != null && this.selectedConnection.Position != null){
+            IsMarkerMoveMode = true;
+            editor.Close();
+            StateHasChanged();
+        }
+    }
+    private void moveMarkerTo(int x, int y) {
+        if (IsMarkerMoveMode && this.selectedConnection != null && this.selectedConnection.Position != null){
+            this.selectedConnection.Position.X = x;
+            this.selectedConnection.Position.Y = y;
+            this.IsMarkerMoveMode = false;
+            editor.Edit(selectedEntryName, selectedConnection);
+            StateHasChanged();
+        }
+    }
+}

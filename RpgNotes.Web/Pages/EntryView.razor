@@ -25,6 +25,18 @@
                                     @tab.ToString()
                                 </button>
                             }
+                            @if (entry.LocationData != null) {
+                                <button style="width: 32px; overflow: hidden; padding: 0;" class="w3-bar-item w3-button border-darker" @onclick=openMap>
+                                    <img src="images/map.svg" style="height: 24px; max-width: 32px; width: auto;">
+                                </button>
+                            } else if (entry.WorldData != null) {
+                                <button style="width: 32px; overflow: hidden; padding: 0;" class="w3-bar-item w3-button border-darker" @onclick=openMap>
+                                    <img src="images/map.svg" style="height: 24px; max-width: 32px; width: auto;">
+                                </button>    
+                            }
+                            <button style="width: 32px; overflow: hidden; padding: 0;" class="w3-bar-item w3-button border-darker" @onclick=openMapToMyCoordinates>
+                                <img src="images/markers/gps.svg" style="height: 24px; max-width: 32px; width: auto;">
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -146,7 +158,7 @@
                         </div>
                         <UrlImagePicker @ref=addWebImage OnSave=@((img)=>{ entry.Images.Add(img); StateHasChanged(); })></UrlImagePicker>
                         <LocalFileImagePicker @ref=addLocalImage OnSave=@((img)=>{ entry.Images.Add(img); StateHasChanged(); })></LocalFileImagePicker>
-                        <ImageViewer @ref=bigImage OnDelete=@((img) => { entry.Images.Remove(img); StateHasChanged(); })></ImageViewer>
+                        <ImageViewer @ref=bigImage CanMarkAsMap=@canHaveMap OnMarkAsMap=makeMap OnDelete=@((img) => { entry.Images.Remove(img); StateHasChanged(); })></ImageViewer>
                     </div>
                     } else if (Tab == Tabs.Connections) {
                     <div>
@@ -162,6 +174,11 @@
                                             <span class="w3-button" @onclick=@(()=>gotoConnection(guid))>
                                                 <img src="images/link.svg" width=20 height=20>
                                             </span> 
+                                            @if (connection.IsLocationBased && entityHasMap(guid)) {
+                                            <span class="w3-button" @onclick=@(()=>openMapToMyCoordinatesInConnection(connection))>
+                                                <img src="images/markers/gps_white.svg" width=20 height=20>
+                                            </span> 
+                                            }
                                         </div>
                                         <div class="w3-col s6 w3-right-align">
                                             <span class="w3-button" @onclick=@(()=>c.Entries.Disconnect(connection))>&times;</span>
@@ -201,6 +218,7 @@
     </div>
 }
 <Confirm @ref=confirmation></Confirm>
+<Notification @ref=notification></Notification>
 
 @code {
     [Parameter] public int id { get; set; }
@@ -252,12 +270,90 @@
     }
 
     private Confirm confirmation;
+    private Notification notification;
     private void delete() {
         confirmation.RequestConfirmation(deleteNow);
     }
     private void deleteNow() {
         var c = Campaign;
         c.Entries.Remove(this.entry);
-        Nav.Home();
+        Nav.NavigateTo($"campaign/{id}", noHistory: true);
+    }
+
+    private bool canHaveMap => entry.LocationData != null || entry.WorldData != null;
+    private Image mapData(Entry entry) => entry.LocationData?.Map ?? entry.WorldData?.Map;
+    private bool hasMapData(Entry entry) => mapData(entry) != null;
+    private void openMap() {
+        var image = entry.LocationData?.Map ?? entry.WorldData?.Map;
+        if (image == null) {
+            // No map, prompt
+            notification.NotifyUser("NO MAP DATA! Select an image from the details panel and use the \"Mark As Map\" button to use that image as a map for this entry.");
+        } else {
+            // Has map, redirect
+            Nav.NavigateTo($"campaign/{id}/entries/{eid}/map", noHistory: true);
+        }
+    }
+    private void makeMap(Image image) {
+        if (!canHaveMap)
+            return;
+
+        if (image == null || string.IsNullOrEmpty(image.Url))
+            return;
+
+        if (hasMapData(this.entry)) {
+            confirmation.RequestConfirmation("There is already a map set for this entry. Would you like to overwrite this map?", () => setMapData(image));
+        } else {
+            setMapData(image);
+        }
+    }
+    private void setMapData(Image image) {
+        if (entry.LocationData != null) {
+            entry.LocationData.Map = image;
+        } 
+        if (entry.WorldData != null) {
+            entry.WorldData.Map = image;
+        }
+    }
+    public bool entityHasMap(string guid) {
+        var entity = Campaign.Entries[guid];
+        return entity != null && hasMapData(entity);
+    }
+    private void openMapToMyCoordinates() {
+        foreach (var connection in this.Campaign.Entries.EnumerateConnections(entry)) {
+            bool areMyCoordinates = (connection.MapEntity == ConnectionMember.To && connection.From == this.eid)
+                                  ||(connection.MapEntity == ConnectionMember.From && connection.To == this.eid);
+
+            if (connection.IsLocationBased && connection.Position != null && areMyCoordinates) {
+                // Is a location attribute, 
+                // Has a set position
+                // The coordinates point to me
+                openMapToMyCoordinatesInConnection(connection);
+                return;
+            }
+        }
+        notification.NotifyUser("No position has been saved for this entry. Create a located based connection and set its position on that location's map.");
+    }
+    private void openMapToMyCoordinatesInConnection(Connection connection) {
+        if (connection.Position == null) {
+            confirmation.RequestConfirmation("A position has not yet been saved. Place one?", () => {
+                connection.Position = new PositionMarker {
+                    Marker = "images/markers/gps.svg",
+                    X = 0,
+                    Y = 0,
+                };
+                EntryMapView.AutoOpenEditor = connection;
+                openMapToMyCoordinatesImmediately(connection);
+            });
+        } else {
+            openMapToMyCoordinatesImmediately(connection);
+        }
+    }
+    private void openMapToMyCoordinatesImmediately(Connection connection) {
+        if (connection.MapEntity == ConnectionMember.From) {
+            Nav.NavigateTo($"campaign/{id}/entries/{connection.From}/map", noHistory: true);
+        } else if (connection.MapEntity == ConnectionMember.To) {
+            // Default route
+            Nav.NavigateTo($"campaign/{id}/entries/{connection.To}/map", noHistory: true);
+        }
     }
 }

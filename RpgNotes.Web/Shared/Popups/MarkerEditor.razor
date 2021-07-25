@@ -1,0 +1,112 @@
+@using Pages
+@inject History Nav;
+
+@if (this.Marker != null) {
+<Modal @ref=modal Title=@(name)>
+    <div class="w3-row-padding">
+        <div class="w3-col s6">
+            <div class="w3-border-bottom w3-margin-bottom w3-large">
+                About
+            </div>
+            <div class="w3-row w3-padding">
+                <div class="w3-right-align">
+                    <button class="w3-button w3-green" @onclick=navigateToEntry>
+                        <img src="images/link.svg" width=20 height=20> Read More
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="w3-col s6">
+            <div class="w3-border-bottom w3-margin-bottom w3-large">
+                Coordinates
+            </div>
+            <div class="w3-padding">
+                <div class="w3-margin-bottom">
+                    <label>X</label>
+                    <input type="number" @bind=this.Marker.Position.X placeholder="X Coordinate" class="w3-input darker">
+                    <label>Y</label>
+                    <input type="number" @bind=this.Marker.Position.Y placeholder="Y Coordinate" class="w3-input darker">
+                </div>
+                <div class="w3-right-align">
+                    <button class="w3-button w3-green" @onclick=relocate>
+                        <img src="images/Markers/gps_white.svg" width=20 height=20> Select Position
+                    </button>
+                </div>
+            </div>
+            <div class="w3-border-bottom w3-margin-bottom w3-large">
+                Symbology
+            </div>
+            <div>
+                @if (this.Marker.Position != null) {
+                    @foreach (var type in MarkerTypes) {
+                        <div style="padding: 8px; display: inline-block;" class="@(type == this.Marker.Position.Marker ? "highlight" : string.Empty)" @onclick=@(() => this.Marker.Position.Marker = type)>
+                            <img src="@type" width=32 height=32>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</Modal>
+}
+
+@code {
+    private Modal modal;
+    private string name;
+    [Parameter] public int CampaignId {get; set;}
+    public void SetCampaign(int id) => CampaignId = id;
+    [Parameter] public Connection Marker {get; set;}
+
+    private string[] MarkerTypes = new string[] {
+        "images/Markers/gps.svg",
+        "images/Markers/gps_white.svg",
+        "images/Markers/circle.svg",
+        "images/Markers/major_circle.svg",
+        "images/Markers/capital_circle.svg",
+        "images/Markers/triangle.svg",
+        "images/Markers/square.svg",
+        "images/Markers/campsite.svg",
+        "images/Markers/castle.svg",
+        "images/Markers/church.svg",
+        "images/Markers/hospital.svg",
+        "images/Markers/fishing.svg",
+        "images/Markers/forestry.svg",
+        "images/Markers/ranch.svg",
+        "images/Markers/garden.svg",
+        "images/Markers/danger.svg",
+        "images/Markers/goal.svg",
+        "images/Markers/info.svg",
+    };
+
+    public void Edit(string name, Connection Marker) {
+        this.Marker = Marker;
+        this.name = name;
+        modal?.Open();
+        StateHasChanged();
+    }
+
+    public void Close() {
+        modal?.Close();
+    }
+
+    [Parameter] public Action OnRelocate {get; set;}
+    private void relocate() {
+        this.OnRelocate?.Invoke();
+    }
+
+    private void navigateToEntry() {
+        string guid = null;
+        if (Marker.MapEntity == ConnectionMember.To) {
+            // goto from
+            guid = Marker.From;
+        }
+        if (Marker.MapEntity == ConnectionMember.From) {
+            // goto to
+            guid = Marker.To;
+        }
+
+        if (!string.IsNullOrEmpty(guid)) {
+            Nav.NavigateTo($"campaign/{CampaignId}/entries/{guid}", noHistory: true); 
+        }
+    }
+}

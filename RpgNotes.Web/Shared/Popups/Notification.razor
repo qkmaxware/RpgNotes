@@ -1,0 +1,25 @@
+<Modal @ref=modal Title="Notification">
+    <p class="w3-center">
+        @text
+    </p>
+    <div class="w3-row">
+        <div class="w3-col s6 w3-right-align">
+            <button class="w3-button w3-green" @onclick=Close>Ok</button>
+        </div>
+    </div>
+</Modal>
+
+@code {
+    private Modal modal;
+    private string text;
+
+    public void NotifyUser(string text) {
+        this.text = text;
+        modal?.Open();
+        StateHasChanged();
+    }
+
+    public void Close() {
+        modal?.Close();
+    }
+}

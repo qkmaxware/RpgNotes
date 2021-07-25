@@ -11,14 +11,31 @@ h1 {
     border: 1px solid #525252;
 }
 
+.font-main {
+    color: #525252;
+}
+
 .dark {
     background-color: #414141;
     color: white;
 }
 
+.dark-overlay {
+    background-color: #4141417F;
+    color: white;
+}
+
+.font-dark {
+    color: #414141;
+}
+
 .darker {
     background-color: #313131;
     color: white;
+}
+
+.font-darker {
+    color: #313131;
 }
 
 .border-darker {
@@ -28,6 +45,10 @@ h1 {
 .darkest {
     background-color: #1a1a1a;
     color: white;
+}
+
+.font-darkest {
+    color: #1a1a1a;
 }
 
 .border-darkest {

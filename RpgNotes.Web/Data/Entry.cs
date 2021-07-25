@@ -8,11 +8,17 @@ public class CharacterData {
     public int? Age {get; set;}
     public AttributesBlock Attributes {get; set;}
 }
+
 public class QuestData {
     public bool IsComplete {get; set;}
 }
-public class LocationData {}
-public class WorldData {}
+
+public class LocationData {
+    public Image Map {get; set;}
+}
+public class WorldData {
+    public Image Map {get; set;}
+}
 public class FactionData {}
 public class ItemData {}
 

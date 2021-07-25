@@ -2,12 +2,20 @@ using System.Collections.Generic;
 
 namespace RpgNotes.Web.Data {
 
+public enum ConnectionMember {
+    To, From
+}
+
 public class Connection {
     public string From {get; set;}
     public string To {get; set;}
 
     public string ForwardRelation {get; set;}
     public string ReverseRelation {get; set;}
+
+    public bool IsLocationBased {get; set;}
+    public ConnectionMember MapEntity {get; set;}
+    public PositionMarker Position {get; set;}
 
     public string RelationshipStringFor(string guid) {
         if (guid == From) {
@@ -80,6 +88,7 @@ public class Connection {
 
     public static Connection LocatedIn(string x, string y) {
         return new Connection {
+            IsLocationBased = true,
             From = x, To = y,
             ForwardRelation = "Located in",
             ReverseRelation = "Contains",

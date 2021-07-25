@@ -1,0 +1,192 @@
+@using System.Drawing
+<div class="w3-display-container" style="position: relative; overflow: hidden; width: @(ContainerWidth); height: @(ContainerHeight);"> 
+   <!-- Map Layers -->
+    <div 
+        @onmousedown=onMouseDragStart
+        @onmousemove=onMouseDrag 
+        @onmouseout=onMouseDragEnd
+        @onmouseup=onMouseDragEnd
+        @onclick=onClick
+
+        @ontouchstart=onTouchDragStart
+        @ontouchmove=onTouchDrag
+        @ontouchleave=onTouchDragEnd
+        @ontouchend=onTouchDragEnd
+
+        style="position: absolute; left: @(scrollX)px; top: @(scrollY)px; transform: scale(@scaleFactor);">
+        <CascadingValue Value=this>
+            @ChildContent
+        </CascadingValue>
+    </div>
+    <!-- Map Controls -->
+    @if (ShowControls) {
+        if (ShowMousePosition) {
+            <div class="w3-display-bottommiddle w3-padding dark-overlay">
+                (@mouseX, @mouseY)
+            </div>
+        }
+        if (ShowZoomControl) {
+            <div class="w3-display-topleft w3-bar-block w3-center">
+                <span class="w3-bar-item dark-overlay">@(scaleFactor.ToString("0.0"))x</span>
+                <button class="w3-button w3-bar-item dark-overlay" @onclick=ZoomIn>+</button>
+                <button class="w3-button w3-bar-item dark-overlay" @onclick=ZoomOut>-</button>
+            </div>
+        }
+        if (ShowResetControl) {
+            <div class="w3-display-bottomright">
+                <button class="w3-button dark-overlay" @onclick=Reset>Reset</button>
+            </div>
+        }
+        if (ShowPanControl) {
+            <div class="w3-display-bottomleft">
+                <div class="w3-bar">
+                    <span class="w3-bar-item" style="color:transparent; user-select: none;">⯇</span>
+                    <button class="w3-button w3-bar-item dark-overlay" @onclick=@(() => Pan(0, 32))>⯅</button>
+                    <span class="w3-bar-item" style="color:transparent; user-select: none;">⯈</span>
+                </div>
+                <div class="w3-bar">
+                    <button class="w3-button w3-bar-item dark-overlay" @onclick=@(() => Pan(-32,0))>⯇</button>
+                    <button class="w3-button w3-bar-item dark-overlay" @onclick=@(() => Pan(0,-32))>⯆</button>
+                    <button class="w3-button w3-bar-item dark-overlay" @onclick=@(() => Pan(32, 0))>⯈</button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+
+@code {
+    private int scrollX;
+    private int scrollY;
+    private int mouseX;
+    private int mouseY;
+    private float scaleFactor = 1;
+
+    [Parameter] public Action<int, int> OnClick {get; set;}
+
+    [Parameter] public float MaxZoomFactor {get; set;} = 5f;
+    [Parameter] public float MinZoomFactor {get; set;} = 0.1f;
+    [Parameter] public float ZoomIncrement {get; set;} = 0.1f;
+
+    [Parameter] public RenderFragment ChildContent {get; set;}
+    [Parameter] public string ContainerWidth {get; set;} = "100vw";
+    [Parameter] public string ContainerHeight {get; set;} = "100vh";
+
+    [Parameter] public bool ShowControls {get; set;} = true;
+    [Parameter] public bool ShowZoomControl {get; set;} = true;
+    [Parameter] public bool ShowResetControl {get; set;} = true;
+    [Parameter] public bool ShowPanControl {get; set;} = true;
+    [Parameter] public bool ShowMousePosition {get; set;} = true;
+
+    private List<Layer> layers = new List<Layer>();
+    public void AddLayer(Layer layer) {
+        this.layers.Add(layer);
+        StateHasChanged();
+    }
+
+    public void ZoomIn() {
+        this.scaleFactor = Math.Min(this.scaleFactor + ZoomIncrement, MaxZoomFactor);
+        StateHasChanged();
+    }
+
+    public void ZoomOut() {
+        this.scaleFactor = Math.Max(this.scaleFactor - ZoomIncrement, MinZoomFactor);
+        StateHasChanged();
+    }
+
+    public void Pan(int x, int y) {
+        this.scrollX -= x;
+        this.scrollY += y;
+        StateHasChanged();
+    }
+
+    public void Center(int x, int y) {
+        this.scrollX = -x;
+        this.scrollY = -y;
+        StateHasChanged();
+    }
+
+    public void Reset() {
+        this.scrollX = default(int);
+        this.scrollY = default(int);
+        this.scaleFactor = 1.0f;
+        StateHasChanged();
+    }
+
+    private void onClick(MouseEventArgs e) {
+        var invScale = 1.0f/this.scaleFactor;
+        var newMouseX = (int)((e.ClientX - scrollX) * invScale);
+        var newMouseY = (int)((e.ClientY - scrollY) * invScale);
+
+        this.OnClick?.Invoke(newMouseX, newMouseY);
+    }
+
+    private double[] clientPosition;
+    private int[] cachedPosition;
+    private void onMouseDragStart(MouseEventArgs e) {
+        clientPosition = new double[]{ e.ClientX, e.ClientY };
+        cachedPosition = new int[]{ this.scrollX, this.scrollY };
+    }
+
+    private void onTouchDragStart (TouchEventArgs e) {
+        var touch = e.Touches.First();
+        clientPosition = new double[]{ touch.ClientX, touch.ClientY };
+        cachedPosition = new int[]{ this.scrollX, this.scrollY };
+    }
+
+    private void onMouseDrag(MouseEventArgs e) {
+        // Below this is to display mouse coordinates
+        var invScale = 1.0f/this.scaleFactor;
+        var newMouseX = (int)((e.ClientX - scrollX) * invScale);
+        var newMouseY = (int)((e.ClientY - scrollY) * invScale);
+        if (newMouseX != mouseX) {
+            mouseX = newMouseX;
+        }
+        if (newMouseY != mouseY) {
+            mouseY = newMouseY;
+        }
+
+        // Below this is to move the image
+        if (this.cachedPosition == null || this.clientPosition == null) {
+            // If mouse is not pressed
+            return;
+        }
+
+        this.scrollX = cachedPosition[0] + (int)(e.ClientX - clientPosition[0]);
+        this.scrollY = cachedPosition[1] + (int)(e.ClientY - clientPosition[1]);
+    }
+
+    private void onTouchDrag(TouchEventArgs e) {
+        var touch = e.Touches.First();
+
+        // Below this is to display mouse coordinates
+        var invScale = 1.0f/this.scaleFactor;
+        var newMouseX = (int)((touch.ClientX - scrollX) * invScale);
+        var newMouseY = (int)((touch.ClientY - scrollY) * invScale);
+        if (newMouseX != mouseX) {
+            mouseX = newMouseX;
+        }
+        if (newMouseY != mouseY) {
+            mouseY = newMouseY;
+        }
+        
+        // Below this is to move the image
+        if (this.cachedPosition == null || this.clientPosition == null) {
+            // If mouse is not pressed
+            return;
+        }
+
+        this.scrollX = cachedPosition[0] + (int)(touch.ClientX - clientPosition[0]);
+        this.scrollY = cachedPosition[1] + (int)(touch.ClientY - clientPosition[1]);
+    }
+
+    private void onMouseDragEnd() {
+        this.clientPosition = null;
+        this.cachedPosition = null;
+    }
+
+    private void onTouchDragEnd() {
+        this.clientPosition = null;
+        this.cachedPosition = null;
+    }
+}
