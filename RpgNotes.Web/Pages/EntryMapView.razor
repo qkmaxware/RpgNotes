@@ -1,6 +1,7 @@
 @page "/campaign/{id:int}/entries/{eid}/map"
 @page "/campaign/{id:int}/entries/{eid}/map/{x:int}/{y:int}"
 @inject AppData Data;
+@inject IJSRuntime JsRuntime;
 @using RpgNotes.Web.Shared.Popups
 
 @if(entry != null && background != null) {
@@ -45,7 +46,7 @@
     private int MarkerSizePx = 32;
     private Dictionary<Entry, List<Connection>> markers;
 
-    public static Connection AutoOpenEditor;
+    public static Connection PlaceMarkerOnLoad;
 
     protected override void OnInitialized() {
         editor?.SetCampaign(this.id);
@@ -60,9 +61,6 @@
         background = entry?.LocationData?.Map ?? entry?.WorldData?.Map;
 
         this.markers = new Dictionary<Entry, List<Connection>>();
-        if (this.x.HasValue && this.y.HasValue) {
-            // User has provided a value, make a blank marker for them
-        }
         foreach (var connection in c.Entries.EnumerateConnections(this.entry)) {
             // If connection's other entity is located within me, and a marker exists, add it
             if (connection.Position == null)
@@ -90,16 +88,29 @@
             }
         }
 
-        if (AutoOpenEditor != null && AutoOpenEditor.Position != null) {
+        if (PlaceMarkerOnLoad != null && PlaceMarkerOnLoad.Position != null) {
             // Get the entity for this connection
-            var guid = AutoOpenEditor.MapEntity == ConnectionMember.To ? AutoOpenEditor.From : AutoOpenEditor.To;
+            var guid = PlaceMarkerOnLoad.MapEntity == ConnectionMember.To ? PlaceMarkerOnLoad.From : PlaceMarkerOnLoad.To;
             var entity = c.Entries[guid];
             if (entity != null) {
                 this.selectedEntryName = entity.Name;
-                this.selectedConnection = AutoOpenEditor;
+                this.selectedConnection = PlaceMarkerOnLoad;
                 IsMarkerMoveMode = true;
             }
-            AutoOpenEditor = null;
+            PlaceMarkerOnLoad = null;
+        }
+    }
+
+    public class WindowDimension {
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        var window = await JsRuntime.InvokeAsync<WindowDimension>("BlazorGetWindowSize");
+        if (firstRender) {
+            if (x.HasValue && y.HasValue) {
+                map?.PanTo(x.Value - window.Width/2, y.Value - window.Height/2);
+            }
         }
     }
 

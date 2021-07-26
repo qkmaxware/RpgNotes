@@ -12,6 +12,7 @@
             <button class="w3-button darker">&#x22EE;</button>
             <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0;">
                 <button class="w3-bar-item w3-button darker" @onclick=openTagManager>Tag Manager</button>
+                <button class="w3-bar-item w3-button darker" @onclick=export>Export Campaign</button>
                 <button class="w3-bar-item w3-button darker" @onclick=archive>Archive Campaign</button>
             </div>
         </span>
@@ -68,6 +69,13 @@
 
     private void openTagManager() {
         Nav.NavigateTo($"campaign/{id}/tags");
+    }
+
+    private async Task export() {
+        var c = this.Campaign;
+        if (c != null) {
+            await Program.DownloadJsonData<Campaign>(c.Name, c);
+        }
     }
 
     private void archive() {

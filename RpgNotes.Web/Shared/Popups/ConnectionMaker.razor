@@ -3,16 +3,20 @@
         <div class="w3-padding">
             <label>Relationship</label>
             <select class="w3-input darker" @bind=generator>
-                @foreach (var kv in generators) {
-                    <option value=@kv.Key>@kv.Key</option>
+                @foreach(var group in organizedGenerators) {
+                    <optgroup label="@group.Key">
+                        @foreach (var kv in group.Value) {
+                            <option value="@(group.Key).@(kv.Key)">@kv.Key</option>
+                        }
+                    </optgroup>
                 }
             </select>
-            @if (generator == CustomConnection) {
+            @if (generator == (OtherConnectionsGroup + "." + CustomConnection)) {
                 <div class="w3-panel w3-leftbar">
                     <label>Connection to</label>
-                    <input class="w3-input darker" type="text" placeholder="@(Current.Name)'s connection to @(customRelationOtherName)" @bind=forward>
+                    <input class="w3-input darker" type="text" placeholder="@(Current.Name)'s relationship to @(customRelationOtherName)" @bind=forward>
                     <label>Connection from</label>
-                    <input class="w3-input darker" type="text" placeholder="@(customRelationOtherName)'s connection to @(Current.Name)" @bind=reverse>
+                    <input class="w3-input darker" type="text" placeholder="@(customRelationOtherName)'s relationship to @(Current.Name)" @bind=reverse>
                 </div>
             }
         </div>
@@ -29,7 +33,7 @@
         </div>
     }
     <div class="w3-padding w3-center">
-        <button class="w3-green w3-button" @onclick=add>Add</button>
+        <button class="w3-green w3-button" @onclick=addFromOrganized>Add</button>
     </div>
 </Modal>
 
@@ -37,27 +41,38 @@
     private string generator;
     private string entryName;
 
+    public static string OtherConnectionsGroup = "Other";
     private static string CustomConnection = "Custom";
     private string customRelationOtherName => string.IsNullOrEmpty(entryName) ? "?" : entryName;
 
     private Modal modal;
-    private Dictionary<string, Func<string,string,Connection>> generators = new Dictionary<string, Func<string, string, Connection>>{
-        { "Parent of", Connection.ParentOf },
-        { "Child of", (child, parent) => Connection.ParentOf(parent, child) },
-        { "In a relationship with", Connection.InARelationshipWith },
-        { "Friends with", Connection.FriendsWith },
-        { "Rivals with", Connection.RivalOf },
-        { "Dislikes", Dislikes },
-        { "Studied with", StudiedWith },
-        { "Taught", Taught },
-        { "Learned from", (student, teacher) => Taught(teacher, student) },
-        { "Owner of", Connection.OwnerOf },
-        { "Owned by", (item, owner) => Connection.OwnerOf(owner, item) },
-        { "Leader of", Connection.LeaderOf },
-        { "Lead by", (faction, owner) => Connection.LeaderOf(owner, faction) },
-        { "Located in", Connection.LocatedIn },
-        { "Contains", (country, city) => Connection.LocatedIn(city, country) },
+    private Dictionary<string, Dictionary<string, Func<string,string,Connection>>> organizedGenerators = new Dictionary<string, Dictionary<string, Func<string, string, Connection>>> {
+        {"Personal", new Dictionary<string, Func<string, string, Connection>>{
+            { "Parent of", Connection.ParentOf },
+            { "Child of", (child, parent) => Connection.ParentOf(parent, child) },
+            { "In a relationship with", Connection.InARelationshipWith },
+            { "Friends with", Connection.FriendsWith },
+            { "Rivals with", Connection.RivalOf },
+            { "Dislikes", Dislikes },
+            { "Studied with", StudiedWith },
+            { "Taught", Taught },
+            { "Learned from", (student, teacher) => Taught(teacher, student) },
+        }},
+        {"Possession", new Dictionary<string, Func<string, string, Connection>>{
+            { "Owner of", Connection.OwnerOf },
+            { "Owned by", (item, owner) => Connection.OwnerOf(owner, item) },
+            { "Leader of", Connection.LeaderOf },
+            { "Lead by", (faction, owner) => Connection.LeaderOf(owner, faction) },
+            { "Contains", Connection.Contains },
+            { "Contained in", (item, bag) => Connection.Contains(bag, item) } 
+        }},
+        {"Location", new Dictionary<string, Func<string, string, Connection>>{
+            { "Located in", Connection.LocatedIn },
+            { "Contains", (country, city) => Connection.LocatedIn(city, country) },
+        }},
+        {OtherConnectionsGroup, new Dictionary<string, Func<string, string, Connection>>{}}
     };
+
     [Parameter] public Entry Current {get; set;}
     [Parameter] public EntryCollection Entries {get; set;}
     [Parameter] public Action<Connection> OnAdd {get; set;}
@@ -65,22 +80,32 @@
     public void Open() {
         forward = null;
         reverse = null;
-        if (!generators.ContainsKey(CustomConnection)) {
-            generators.Add( CustomConnection, (from, to) => CustomConnectionBuilder(from, to) );
+        if (!organizedGenerators["Other"].ContainsKey(CustomConnection)) {
+            organizedGenerators["Other"].Add( CustomConnection, (from, to) => CustomConnectionBuilder(from, to) );
         }
         modal?.Open();
     }
 
-    public void add() {
-        var fn = generators.Where(kv => kv.Key == generator).FirstOrDefault().Value;
-        var ent = Entries.Enumerate().Where(e => e.Name == entryName).FirstOrDefault();
-        if (fn != null && ent != null) {
-            var conn = fn(Entries.GuidOf(Current), Entries.GuidOf(ent));
-            OnAdd?.Invoke(conn);
-            modal?.Close();
-        } else {
-            Console.WriteLine(generator);
-            Console.WriteLine(entryName);
+    private void addFromOrganized() {
+        var kv = generator.Split('.', 2);
+        if (kv.Length < 2)
+            return;
+
+        var groupName = kv[0];
+        var funcName = kv[1]; 
+        if (organizedGenerators.ContainsKey(groupName)) {
+            var group = organizedGenerators[groupName];
+            if (group.ContainsKey(funcName)) {
+                var generatorFunction = group[funcName];
+                if (generatorFunction != null) {
+                    var ent = Entries.Enumerate().Where(e => e.Name == entryName).FirstOrDefault();
+                    if (ent != null) {
+                        var conn = generatorFunction(Entries.GuidOf(Current), Entries.GuidOf(ent));
+                        OnAdd?.Invoke(conn);
+                        modal?.Close();
+                    }
+                }
+            }
         }
     }
 

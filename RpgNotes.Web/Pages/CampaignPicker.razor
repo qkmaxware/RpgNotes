@@ -8,9 +8,10 @@
     <span class="w3-dropdown-hover" style="float:inherit;">
         <button class="w3-button darker">&#x22EE;</button>
         <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0;">
+            <button class="w3-bar-item w3-button darker" @onclick=importCampaign>Import Campaign</button>
+            <button class="w3-bar-item w3-button darker" @onclick=import>Import Data</button>
+            <button class="w3-bar-item w3-button darker" @onclick=export>Export Data</button>
             <button class="w3-bar-item w3-button darker" @onclick=clear>Clear Data</button>
-            <button class="w3-bar-item w3-button darker" @onclick=export>Export JSON</button>
-            <button class="w3-bar-item w3-button darker" @onclick=import>Import JSON</button>
         </div>
     </span>
 </Navigator>
@@ -61,6 +62,7 @@
     </div>
 </div>
 <LocalJsonPicker @ref=importer T=AppData OnSave=onImport></LocalJsonPicker>
+<LocalJsonPicker @ref=singleImporter T=Campaign OnSave=onImportSingle></LocalJsonPicker>
 <Confirm @ref=confirmation></Confirm>
 
 @code {
@@ -68,7 +70,6 @@
     bool viewArchive = false;
 
     private void openNewCampaign() {
-        Console.WriteLine("here");
         campaign.Open();
     }
 
@@ -95,6 +96,14 @@
     }
     private void onImport(AppData data) {
         Data.Overwrite(data);
+        StateHasChanged();
+    }
+    private LocalJsonPicker<Campaign> singleImporter;
+    private void importCampaign() {
+        singleImporter?.Open();
+    }
+    private void onImportSingle(Campaign data) {
+        Data.Campaigns.Add(data);
         StateHasChanged();
     }
 }

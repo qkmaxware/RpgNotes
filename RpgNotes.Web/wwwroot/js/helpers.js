@@ -1,3 +1,9 @@
+function BlazorGetWindowSize() {
+    return {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
+}
 function BlazorReadLocalStorage(name) {
     return window.localStorage.getItem(name);
 }

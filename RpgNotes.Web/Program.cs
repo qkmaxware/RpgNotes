@@ -44,6 +44,9 @@ namespace RpgNotes.Web
                 return;
 
             var filename = "notes";
+            await DownloadJsonData(filename, data);
+        }
+        public static async Task DownloadJsonData<T>(string filename, T data) {
             var json = System.Text.Json.JsonSerializer.Serialize(data);
             byte[] file = System.Text.Encoding.UTF8.GetBytes(json);
             await JS.InvokeVoidAsync("BlazorDownloadFile", $"{filename}.json", "text/json", file);

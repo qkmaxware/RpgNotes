@@ -94,6 +94,14 @@ public class Connection {
             ReverseRelation = "Contains",
         };
     }
+
+    public static Connection Contains(string x, string y) {
+        return new Connection {
+            From = x, To = y,
+            ForwardRelation = "Contains",
+            ReverseRelation = "Contained in",
+        };
+    }
 }
 
 }

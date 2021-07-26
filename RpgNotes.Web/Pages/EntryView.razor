@@ -145,9 +145,15 @@
                                     <button class="w3-button" style="padding:6px;" @onclick=@(() => addWebImage?.Open())>
                                         <img src="images/image.www.svg" style="width: auto; height: 30px;">
                                     </button>
+                                    @*
+                                    // Disable the upload image section for now since it can easily lead to app breaking
+                                    // SEE https://github.com/dotnet/aspnetcore/issues/5617
+                                    // AND https://github.com/dotnet/aspnetcore/issues/15777
+                                    // Also can lead to breaking loading saves because the saves include the image data-urls as well as other data
                                     <button class="w3-button" style="padding:6px;" @onclick=@(() => addLocalImage?.Open())>
                                         <img src="images/image.file.svg" style="width: auto; height: 30px;">
                                     </button>
+                                    *@
                                 </div>
                             </div>
                             <div class="w3-padding">
@@ -174,7 +180,7 @@
                                             <span class="w3-button" @onclick=@(()=>gotoConnection(guid))>
                                                 <img src="images/link.svg" width=20 height=20>
                                             </span> 
-                                            @if (connection.IsLocationBased && entityHasMap(guid)) {
+                                            @if (connection.IsLocationBased && entityHasMap(connection.MapEntity == ConnectionMember.To ? connection.To : connection.From)) {
                                             <span class="w3-button" @onclick=@(()=>openMapToMyCoordinatesInConnection(connection))>
                                                 <img src="images/markers/gps_white.svg" width=20 height=20>
                                             </span> 
@@ -337,11 +343,11 @@
         if (connection.Position == null) {
             confirmation.RequestConfirmation("A position has not yet been saved. Place one?", () => {
                 connection.Position = new PositionMarker {
-                    Marker = "images/markers/gps.svg",
+                    Marker = "images/Markers/gps.svg",
                     X = 0,
                     Y = 0,
                 };
-                EntryMapView.AutoOpenEditor = connection;
+                EntryMapView.PlaceMarkerOnLoad = connection;
                 openMapToMyCoordinatesImmediately(connection);
             });
         } else {
@@ -349,11 +355,16 @@
         }
     }
     private void openMapToMyCoordinatesImmediately(Connection connection) {
+        if (connection.Position == null)
+            return;
+            
+        var x = connection.Position.X;
+        var y = connection.Position.Y;
         if (connection.MapEntity == ConnectionMember.From) {
-            Nav.NavigateTo($"campaign/{id}/entries/{connection.From}/map", noHistory: true);
+            Nav.NavigateTo($"campaign/{id}/entries/{connection.From}/map/{x}/{y}", noHistory: true);
         } else if (connection.MapEntity == ConnectionMember.To) {
             // Default route
-            Nav.NavigateTo($"campaign/{id}/entries/{connection.To}/map", noHistory: true);
+            Nav.NavigateTo($"campaign/{id}/entries/{connection.To}/map/{x}/{y}", noHistory: true);
         }
     }
 }

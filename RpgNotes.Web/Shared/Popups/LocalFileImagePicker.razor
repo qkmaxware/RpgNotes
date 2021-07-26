@@ -1,14 +1,31 @@
 <Modal @ref=modal Title="Add Image">
+    <p>
+        It is recommended to upload images to a web-server and use an image URL rather than uploading a local file here due to current limitations with Blazor. If you have to upload a file please only upload small images ~&lt;100KB. Large images may cause the application to break due to running out of available memory.
+    </p>
     <LocalFilePicker Accept="image/*" AsDataUrl=true OnFileLoad=@((b) =>data=b)></LocalFilePicker>
 
     <div class="w3-padding w3-center">
-        <button class="w3-green w3-button" @onclick=save>Add</button>
+        <button class="@(hasData ? "w3-green" : "w3-dark-grey") w3-button" @onclick=save>Add</button>
     </div>
 </Modal>
 
 @code {
     private Modal modal;
-    private string data;
+    private object key = new object();
+    private string _data;
+    private string data {
+        get {
+            lock(key) {
+                return _data;
+            }
+        } set {
+            lock(key) {
+                _data = value;
+                StateHasChanged();
+            }
+        }
+    }
+    private bool hasData => !string.IsNullOrEmpty(data);
 
     [Parameter] public Action<Image> OnSave {get; set;}
 
@@ -17,7 +34,9 @@
     }
 
     private void save() {
-        OnSave?.Invoke(Image.FromDataUrl(data));
-        modal?.Close();
+        if (hasData) {
+            OnSave?.Invoke(Image.FromDataUrl(data));
+            modal?.Close();
+        }
     }
 }
